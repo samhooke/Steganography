@@ -1,17 +1,7 @@
-%%
-quality = 25;
-imwrite(imread('stego.jpg'), 'stego_e1.jpg', 'Quality', quality); % 'Mode', 'lossless'
-for loop = 1:10
-    asdf = imread(sprintf('stego_e%d.jpg', loop));
-    asdf(loop * 8,1) = 0;
-    imwrite(asdf, sprintf('stego_e%d.jpg', loop + 1), 'Quality', quality); % 'Mode', 'lossless'
-end
-
-%% Wavelet
-% dwt / idwt
-clear;
+% Get rid of junk
+clear all;
+close all;
 clc;
-clf;
 
 im = double(rgb2gray(imread('lena512.jpg')));
 
