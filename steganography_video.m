@@ -5,10 +5,10 @@ clc;
 
 message = 'Test post; please ignore!';
 
-frameStart = 200;
+frameStart = 0;
 frameMax = 5;
-fileNameIn = 'videos/bunny_source.mp4';
-fileNameOut = 'videos/bunny_stego.avi';
+fileNameIn = 'carrier/bunny.mp4';
+fileNameOut = 'output/bunny.avi';
 secretIn = str2bin(message);
 %fileNameSecret = 'video_secret2.png';
 %bits = 4;
