@@ -13,7 +13,7 @@ carrier_original = rgb2gray(imread(carrier_image_filename));
 secret_msg = str2bin(secret_msg_str);
 
 % Encode, write, read, decode
-frequency_coefficients = [7 6; 5 2];
+frequency_coefficients = [3 6; 5 2];
 [carrier_stego bits_written bits_unused] = steg_dct_encode(secret_msg, carrier_original, frequency_coefficients, 25);
 imwrite(carrier_stego, 'stego_temp.jpg');
 carrier_stego = imread('stego_temp.jpg');
@@ -21,15 +21,21 @@ carrier_stego = imread('stego_temp.jpg');
 
 % Verify and compare difference
 msg_match = isequal(secret_msg(1:200), retrieved_msg(1:200));
-difference = sum((carrier_original - carrier_stego) .^ 2);
+difference = (carrier_original - carrier_stego) .^ 2;
+difference_sum = sum(difference);
 
-% Display results
-subplot(2,2,1);
+% Display images
+subplot(1,3,1);
 imshow(carrier_original);
-subplot(2,2,2);
+title('Carrier');
+subplot(1,3,2);
 imshow(carrier_stego);
+title('Stego image');
+subplot(1,3,3);
+imshow(difference);
+title('Difference');
 
-fprintf('Difference: %d\n', sum(difference));
-
+% Print statistics
+fprintf('Difference: %d\n', sum(difference_sum));
 disp(['Encoded message: ', bin2str(secret_msg)]);
 disp(['Decoded message: ', bin2str(retrieved_msg)]);
