@@ -3,10 +3,17 @@ Steganography
 
 Implementations of several methods of steganography for both images and videos.
 
-Methods
-=======
+Algorithms
+==========
+
+## Image
 
 * LSB
 * DCT
 * Zhao & Koch DCT
-* Wavelet
+* Wavelet with DCT
+* Wavelet fusion
+
+## Video
+
+* Under development
