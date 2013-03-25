@@ -1,5 +1,5 @@
-function message_bin = steg_decode_lsb(steg)
-% steg_decode_lsb Extracts binary data from least significant bits
+function message_bin = steg_lsb_decode(steg)
+% steg_lsb_decode Extracts binary data from least significant bits
 % INPUTS
 %   steg        - Image to extract message from.
 % OUTPUTS

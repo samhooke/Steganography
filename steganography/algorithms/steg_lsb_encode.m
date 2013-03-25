@@ -1,5 +1,5 @@
-function steg = steg_encode_lsb(carrier, message_bin)
-% steg_encode_lsb Encodes a message in the least significant bits of a
+function steg = steg_lsb_encode(carrier, message_bin)
+% steg_lsb_encode Encodes a message in the least significant bits of a
 % carrier image
 % INPUTS
 %   carrier      - Image to hide message in. Should only have one colour
