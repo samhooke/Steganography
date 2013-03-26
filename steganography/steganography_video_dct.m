@@ -6,10 +6,27 @@ close all;
 clc;
 clf;
 
-%@@ Input image and output location
+%@@ Input video
 carrier_video_filename = 'input\bunny.mp4';
-output_video_filename = 'output\bunny_dct.avi';
 cd('C:\Users\Muffin\Documents\GitHub\Steganography');
+
+%@@ Output video, format and compression
+profile_type = 3;
+
+switch profile_type
+    case 1
+        profile = 'Motion JPEG AVI';
+        output_video_filename = 'output\bunny_dct_MJAVI.avi';
+    case 2
+        profile = 'Uncompressed AVI';
+        output_video_filename = 'output\bunny_dct_UnAVI.avi';
+    case 3
+        profile = 'Motion JPEG 2000';
+        output_video_filename = 'output\bunny_dct_MJ2k.mj2';
+    otherwise
+        fprintf('Invalid profile_type\n');
+        break;
+end;
 
 %@@ Message string to encode into carrier video
 secret_msg_str = '0123456789__________0123456789----------';%'Test post; please ignore!';
@@ -27,18 +44,8 @@ persistence = 100;
 %@@ Frequency coefficients
 frequency_coefficients = [3 6; 5 2];
 
-%@@ Whether the output video is compressed
-use_compression = false;
-
 secret_msg_bin = str2bin(secret_msg_str);
 vin = VideoReader(carrier_video_filename);
-
-if use_compression
-    profile = 'Motion JPEG AVI';
-else
-    profile = 'Uncompressed AVI'; 
-end;
-
 vout = VideoWriter(output_video_filename, profile);
 frame_count = min(vin.NumberOfFrames, frame_max);
 fps = vin.FrameRate;
@@ -48,6 +55,7 @@ height = vin.Height;
 vprocess(1:frame_count) = struct('cdata', zeros(height, width, 3, 'uint8'), 'colormap', []);
 
 for num = 1:frame_count
+    fprintf('Processing frame %d of %d\n', num, frame_count);
     frame = read(vin, frame_start + num);
     framec = frame(:,:,channel);
     
@@ -69,15 +77,6 @@ fprintf('Video written\n');
 
 % Decode
 % ======
-
-clear all;
-close all;
-clc;
-clf;
-
-%@@ Input image and output location
-output_video_filename = 'output\bunny_dct.avi';
-cd('C:\Users\Muffin\Documents\GitHub\Steganography');
 
 %@@ Frames to use from the video
 frame_start = 0;
