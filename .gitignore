@@ -9,3 +9,6 @@
 
 # Simulink Code Generation
 slprj/
+
+# Steganography video output
+*.avi
