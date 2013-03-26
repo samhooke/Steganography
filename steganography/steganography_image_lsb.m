@@ -9,7 +9,7 @@ clf;
 
 %@@ Input image and output location
 carrier_image_filename = 'input\lena.jpg';
-output_image_filename = 'output\lena_lsb.jpg';
+output_image_filename = 'output\lena_lsb.png';
 cd('C:\Users\Muffin\Documents\GitHub\Steganography');
 output_mode = 'lossless'; % Fails on 'lossy'
 output_quality = 100;
@@ -32,7 +32,7 @@ im_stego(:,:,channel) = imc_stego;
 imshow(im_stego, [0 255]);
 
 % Write and read
-imwrite(im_stego, output_image_filename, 'Mode', output_mode, 'Quality', output_quality);
+imwrite(im_stego, output_image_filename); %, 'Mode', output_mode, 'Quality', output_quality);
 im_stego = imread(output_image_filename);
 imc_stego = im_stego(:,:,channel);
 
