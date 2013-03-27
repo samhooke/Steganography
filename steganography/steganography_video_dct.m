@@ -4,7 +4,6 @@
 clear all;
 close all;
 clc;
-clf;
 
 %@@ Input video
 carrier_video_filename = 'input\bunny.mp4';
@@ -29,7 +28,7 @@ switch profile_type
 end;
 
 %@@ Message string to encode into carrier video
-secret_msg_str = '0123456789__________0123456789----------';%'Test post; please ignore!';
+secret_msg_str = '0123456789__________0123456789----------';
 
 %@@ Frames to use from the video
 frame_start = 0;
@@ -38,8 +37,11 @@ frame_max = 5;
 %@@ Which colour channel to use (1=r, 2=g, 3=b)
 channel = 3;
 
+%@@ Which colour space to use ('rgb', 'hsv', 'ycbcr');
+colourspace = 'hsv';
+
 %@@ Persistence the steg encoding (higher = more persistent, more visible)
-persistence = 100;
+persistence = 40;
 
 %@@ Frequency coefficients
 frequency_coefficients = [3 6; 5 2];
@@ -47,7 +49,11 @@ frequency_coefficients = [3 6; 5 2];
 secret_msg_bin = str2bin(secret_msg_str);
 vin = VideoReader(carrier_video_filename);
 vout = VideoWriter(output_video_filename, profile);
-frame_count = min(vin.NumberOfFrames, frame_max);
+if (frame_max <= frame_start)
+    frame_count = vin.NumberOfFrames - frame_start;
+else
+    frame_count = min(vin.NumberOfFrames - frame_start, frame_max);
+end;
 fps = vin.FrameRate;
 width = vin.Width;
 height = vin.Height;
@@ -57,22 +63,39 @@ vprocess(1:frame_count) = struct('cdata', zeros(height, width, 3, 'uint8'), 'col
 for num = 1:frame_count
     fprintf('Processing frame %d of %d\n', num, frame_count);
     frame = read(vin, frame_start + num);
+    
+    frame_before = frame(:,:,channel);
+    
+    if strcmp(colourspace, 'hsv')
+        frame = rgb2hsv(frame);
+    elseif strcmp(colourspace, 'ycbcr')
+        frame = rgb2ycbcr(frame);
+    end;
+    
     framec = frame(:,:,channel);
     
     [framec, ~, ~] = steg_dct_encode(secret_msg_bin, framec, frequency_coefficients, persistence);    
     
     frame(:,:,channel) = framec;
-    vprocess(num).cdata = frame;
+    
+    if strcmp(colourspace, 'hsv')
+        frame = hsv2rgb(frame);
+    elseif strcmp(colourspace, 'ycbcr')
+        frame = ycbcr2rgb(frame);
+    end;
+    
+    frame_after = frame(:,:,channel);
+    
+    vprocess(num).cdata = uint8(frame);
 end;
-
-% Display video
-%implay(vprocess);
 
 % Write video to file
 open(vout);
 writeVideo(vout, vprocess);
 close(vout);
+
 fprintf('Video written\n');
+
 %%
 
 % Decode
@@ -93,6 +116,13 @@ frame_count = min(vin.NumberOfFrames, frame_max);
 
 for num = 1:frame_count
     frame = read(vin, frame_start + num);
+    
+    if strcmp(colourspace, 'hsv')
+        frame = rgb2hsv(frame);
+    elseif strcmp(colourspace, 'ycbcr')
+        frame = rgb2ycbcr(frame);
+    end;
+    
     framec = frame(:,:,channel);
 
     [retrieved_msg_bin] = steg_dct_decode(framec, frequency_coefficients);
@@ -101,4 +131,10 @@ for num = 1:frame_count
     fprintf('Frame %d message: %s\n', num, retrieved_msg_str);
 end;
 
-imshow(frame);
+if strcmp(colourspace, 'hsv')
+    frame = hsv2rgb(frame);
+elseif strcmp(colourspace, 'ycbcr')
+    frame = ycbcr2rgb(frame);
+end;
+
+imshow(uint8(frame));
