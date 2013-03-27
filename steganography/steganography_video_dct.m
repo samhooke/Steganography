@@ -65,17 +65,27 @@ for num = 1:frame_count
     frame = read(vin, frame_start + num);
     
     frame_before = frame(:,:,channel);
-    
+
     if strcmp(colourspace, 'hsv')
         frame = rgb2hsv(frame);
     elseif strcmp(colourspace, 'ycbcr')
         frame = rgb2ycbcr(frame);
     end;
     
-    framec = frame(:,:,channel);
-    
+    if strcmp(colourspace, 'hsv')
+        framec_max = 255;
+        alpha = 30;
+        
+        framec = frame(:,:,channel) * framec_max;
+        
+        framec(framec < alpha) = alpha;
+        framec(framec > (framec_max - alpha)) = (framec_max - alpha);
+    else
+        framec = frame(:,:,channel);
+    end;
+
     [framec, ~, ~] = steg_dct_encode(secret_msg_bin, framec, frequency_coefficients, persistence);    
-    
+
     frame(:,:,channel) = framec;
     
     if strcmp(colourspace, 'hsv')
@@ -83,11 +93,15 @@ for num = 1:frame_count
     elseif strcmp(colourspace, 'ycbcr')
         frame = ycbcr2rgb(frame);
     end;
-    
+
     frame_after = frame(:,:,channel);
     
-    vprocess(num).cdata = uint8(frame);
+    frame = uint8(frame);
+    
+    vprocess(num).cdata = frame;
 end;
+
+implay(vprocess);
 
 % Write video to file
 open(vout);
@@ -137,4 +151,4 @@ elseif strcmp(colourspace, 'ycbcr')
     frame = ycbcr2rgb(frame);
 end;
 
-imshow(uint8(frame));
+imshow(uint8(frame * 255));
