@@ -1,3 +1,10 @@
+clc;
+clear all;
+close all;
+
+msg = generate_test_message(64);
+display(msg);
+%%
 % Get rid of junk
 clear all;
 close all;
@@ -16,7 +23,8 @@ output_quality = 100;
 
 %@@ Message string to encode into carrier image
 %secret_msg_str = repmat('Mary had a little lamb, its fleece was white as snow...', 1, 100);
-secret_msg_str = repmat('secret ', 1, 200);
+%secret_msg_str = repmat('secret ', 1, 200);
+secret_msg_str = repmat('this is a test message see if you can recover it', 1, 100);
 
 %@@ Which colour channel to use (1=r, 2=g, 3=b)
 channel = 3;
