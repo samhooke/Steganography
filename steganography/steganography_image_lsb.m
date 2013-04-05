@@ -9,13 +9,14 @@ clf;
 
 %@@ Input image and output location
 carrier_image_filename = 'input\lena.jpg';
-output_image_filename = 'output\lena_lsb.png';
+output_image_filename = 'output\lena_lsb2.png';
 cd('C:\Users\Muffin\Documents\GitHub\Steganography');
 output_mode = 'lossless'; % Fails on 'lossy'
 output_quality = 100;
 
 %@@ Message string to encode into carrier image
-secret_msg_str = repmat('Mary had a little lamb, its fleece was white as snow...', 1, 100);
+%secret_msg_str = repmat('Mary had a little lamb, its fleece was white as snow...', 1, 100);
+secret_msg_str = repmat('secret ', 1, 200);
 
 %@@ Which colour channel to use (1=r, 2=g, 3=b)
 channel = 3;

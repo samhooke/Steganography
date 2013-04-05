@@ -6,6 +6,7 @@ function message_bin = steg_lsb_decode(steg)
 %   message_bin - Extracted message.
 
 message_bin = mod(steg,2);
+message_bin = reshape(message_bin, [], length(length(message_bin)));
 
 end
 
