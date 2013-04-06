@@ -1,3 +1,4 @@
+clc;
 clear variables;
 [dir_input, dir_output] = steganography_init();
 

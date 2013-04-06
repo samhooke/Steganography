@@ -1,3 +1,4 @@
+clc;
 clear variables;
 [dir_input, dir_output] = steganography_init();
 
@@ -33,7 +34,7 @@ secret_msg_bin = str2bin(secret_msg_str);
 
 % Take chosen channel from the image and encode
 imc = im(:,:,channel);
-[imc_stego bits_written bits_unused] = steg_dct_encode(secret_msg, imc, frequency_coefficients, 25);
+[imc_stego bits_written bits_unused] = steg_dct_encode(secret_msg_bin, imc, frequency_coefficients, 25);
 
 % Put the channels back together, and write
 im_stego = im;
@@ -48,10 +49,10 @@ im_stego = imread(output_image_filename);
 imc = im(:,:,channel);
 
 % Decode
-[retrieved_msg] = steg_dct_decode(imc_stego, frequency_coefficients);
+[retrieved_msg_bin] = steg_dct_decode(imc_stego, frequency_coefficients);
 
 % Verify and compare difference
-msg_match = isequal(secret_msg(1:200), retrieved_msg(1:200));
+msg_match = isequal(secret_msg_bin(1:200), retrieved_msg_bin(1:200));
 difference = (imc - imc_stego) .^ 2;
 difference_sum = sum(difference);
 
@@ -68,5 +69,5 @@ title('Difference');
 
 % Print statistics
 fprintf('Difference: %d\n', sum(difference_sum));
-disp(['Encoded message: ', bin2str(secret_msg)]);
-disp(['Decoded message: ', bin2str(retrieved_msg)]);
+disp(['Encoded message: ', bin2str(secret_msg_bin)]);
+disp(['Decoded message: ', bin2str(retrieved_msg_bin)]);

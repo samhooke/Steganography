@@ -1,3 +1,4 @@
+clc;
 clear variables;
 [dir_input, dir_output] = steganography_init();
 
@@ -14,6 +15,9 @@ secret_msg_str = '';
 
 %@@ Which colour channel to use (1=r, 2=g, 3=b)
 channel = 3;
+
+%@@ Output image quality
+output_quality = 100;
 
 %@@ Alpha value for encoding
 alpha = 0.05;
@@ -52,7 +56,7 @@ subplot(2,2,4);
 imshow(im_stego);
 title('Stego image');
 
-imwrite(im_stego, output_image_filename, 'quality', 100);
+imwrite(im_stego, output_image_filename, 'quality', output_quality);
 
 % Decode
 % ======
