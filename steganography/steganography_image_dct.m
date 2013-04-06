@@ -1,7 +1,4 @@
-% Get rid of junk
-clear all;
-close all;
-clc;
+steganography_init();
 
 %@@ Image used as carrier for encoding message
 carrier_image_filename = 'input/lena.jpg';

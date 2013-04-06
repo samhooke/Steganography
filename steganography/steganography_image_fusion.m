@@ -1,8 +1,4 @@
-% Get rid of junk
-clear all;
-close all;
-clc;
-clf;
+steganography_init();
 
 % Encode
 % ======
@@ -10,7 +6,6 @@ clf;
 %@@ Input image and output location
 carrier_image_filename = 'input\lena.jpg';
 output_image_filename = 'output\lena_haar.jpg';
-cd('C:\Users\Muffin\Documents\GitHub\Steganography');
 
 %@@ Message string to encode into carrier image
 secret_msg_str = 'Test post; please ignore!';

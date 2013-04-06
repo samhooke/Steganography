@@ -1,15 +1,4 @@
-clc;
-clear all;
-close all;
-
-msg = generate_test_message(64);
-display(msg);
-%%
-% Get rid of junk
-clear all;
-close all;
-clc;
-clf;
+steganography_init();
 
 % Encode
 % ======
@@ -17,20 +6,24 @@ clf;
 %@@ Input image and output location
 carrier_image_filename = 'input\lena.jpg';
 output_image_filename = 'output\lena_lsb2.png';
-cd('C:\Users\Muffin\Documents\GitHub\Steganography');
 output_mode = 'lossless'; % Fails on 'lossy'
 output_quality = 100;
 
 %@@ Message string to encode into carrier image
-%secret_msg_str = repmat('Mary had a little lamb, its fleece was white as snow...', 1, 100);
-%secret_msg_str = repmat('secret ', 1, 200);
-secret_msg_str = repmat('this is a test message see if you can recover it', 1, 100);
+%@@ Leave blank to automatically generate a message
+secret_msg_str = '';
 
 %@@ Which colour channel to use (1=r, 2=g, 3=b)
 channel = 3;
 
-secret_msg_bin = str2bin(secret_msg_str);
+% Load image, generate message if necessary
 im = imread(carrier_image_filename);
+[w h] = size(im);
+msg_length_max = w / 8 * h / 8;
+if secret_msg_str == ''
+    secret_msg_str = generate_test_message(msg_length_max);
+end;
+secret_msg_bin = str2bin(secret_msg_str);
 
 % Perform LSB steganography encoding on one channel
 imc = im(:,:,channel);
