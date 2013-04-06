@@ -1,9 +1,8 @@
-import sys
+import sys, shlex
 
-def squared(x):
-    y = x * x
-    return y
+def difference(a, b):
+	return a + ' wat ' + b
 
 if __name__ == '__main__':
-    x = float(sys.argv[1])
-    sys.stdout.write(str(squared(x)))
+	ab = shlex.split(sys.argv[1])
+	sys.stdout.write(difference(ab[0], ab[1]))
