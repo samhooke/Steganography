@@ -71,4 +71,5 @@ imb_original = im_original(:,:,channel);
 
 extracted_msg_str = bin2str(extracted_msg_bin);
 
-fprintf('Extracted message: %s\n', extracted_msg_str);
+% Print statistics
+steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_bin);

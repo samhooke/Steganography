@@ -11,7 +11,7 @@ output_image_filename = [dir_output, 'lena_zk.jpg'];
 
 %@@ Message string to encode into carrier image
 %@@ Leave blank to automatically generate a message
-secret_msg_str = '!';
+secret_msg_str = '';
 
 %@@ Which colour channel to use (1=r, 2=g, 3=b)
 channel = 3;
@@ -48,7 +48,7 @@ im_stego = im;
 im_stego(:,:,channel) = imc_stego;
 
 % Write to file
-imwrite(im_stego, output_image_filename, 'Quality', output_quality); % 'Mode', 'lossless'
+imwrite(im_stego, output_image_filename, 'Quality', output_quality, 'Mode', 'lossless');
 
 % Decode
 % ======
