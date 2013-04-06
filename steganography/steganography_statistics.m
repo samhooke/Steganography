@@ -8,7 +8,7 @@ function steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_
 % OUTPUTS
 %    Prints out statistics.
 
-try_correcting_spelling = false;
+try_correcting_spelling = true;
 
 % Calculate message similarity
 msg_similarity = py_string_similarity(char(secret_msg_bin + 48), char(extracted_msg_bin + 48));

@@ -1,6 +1,6 @@
 # Original spelling.py from: http://norvig.com/spell-correct.html
 
-import sys, re, collections, os, shlex, string
+import sys, re, collections, os, base64, string
 
 def words(text): return re.findall('[a-z]+', text.lower()) 
 
@@ -34,7 +34,8 @@ def correct(word):
 	return max(candidates, key=NWORDS.get)
 
 def correct_sentence(sentence):
-	for word in shlex.split(sentence):
+	#for word in shlex.split(sentence, False, False):
+	for word in sentence.split():
 		# Don't correct short words
 		if len(word) <= 1:
 			yield word
@@ -55,9 +56,7 @@ def correct_sentence(sentence):
 			if len(word) >= 1 and len(word_corrected) >= 1 and word[0].isupper():
 				word_corrected = word_corrected[0].upper() + word_corrected[1:]
 
-
 			# Put punctuation back
-			
 			if len(word_start) > 0:
 				word_corrected = word_start + word_corrected
 			if len(word_end) > 0:
@@ -66,4 +65,6 @@ def correct_sentence(sentence):
 			yield word_corrected
 
 if __name__ == '__main__':
-	sys.stdout.write(string.join(correct_sentence(str(sys.argv[1])), ' '))
+	sentence_encoded = str(sys.argv[1])
+	sentence = base64.b64decode(sentence_encoded)
+	sys.stdout.write(string.join(correct_sentence(sentence), ' '))
