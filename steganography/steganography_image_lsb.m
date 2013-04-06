@@ -5,9 +5,7 @@ steganography_init();
 
 %@@ Input image and output location
 carrier_image_filename = 'input\lena.jpg';
-output_image_filename = 'output\lena_lsb2.png';
-output_mode = 'lossless'; % Fails on 'lossy'
-output_quality = 100;
+output_image_filename = 'output\lena_lsb.png';
 
 %@@ Message string to encode into carrier image
 %@@ Leave blank to automatically generate a message
@@ -31,15 +29,23 @@ imc_stego = steg_lsb_encode(imc, secret_msg_bin);
 im_stego = im;
 im_stego(:,:,channel) = imc_stego;
 
+% Compare carrier and stego image
+subplot(1,2,1);
+imshow(im, [0 255]);
+title('Carrier');
+subplot(1,2,2);
 imshow(im_stego, [0 255]);
+title('Stego');
 
-% Write and read
-imwrite(im_stego, output_image_filename); %, 'Mode', output_mode, 'Quality', output_quality);
-im_stego = imread(output_image_filename);
-imc_stego = im_stego(:,:,channel);
+% Write
+imwrite(im_stego, output_image_filename);
 
 % Decode
 % ======
+
+im_stego = imread(output_image_filename);
+imc_stego = im_stego(:,:,channel);
+
 extracted_msg_bin = steg_lsb_decode(imc_stego);
 extracted_msg_str = bin2str(extracted_msg_bin);
 disp(extracted_msg_str);
