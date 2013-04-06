@@ -12,7 +12,7 @@ def train(features):
 
 alphabet = 'abcdefghijklmnopqrstuvwxyz'
 
-NWORDS = train(words(file('steganography/tools/big.txt').read()))
+NWORDS = train(words(file('steganography/helper/python/spelling_trainer.txt').read()))
 
 def edits1(word):
 	splits     = [(word[:i], word[i:]) for i in range(len(word) + 1)]

@@ -16,11 +16,14 @@ function [result status] = python(varargin)
 %   [RESULT,STATUS] = PYTHON(...) outputs the result of the python call, and
 %   also saves its exit status into variable STATUS.
 
-cmdString = '';
-
 %@@ If false, Python will return error messages if the call fails
 %@@ If true, MATLAB will halt with a fatal error if the Python call fails
 haltOnError = false;
+
+%@@ The root directory where Python is
+pythonRoot = 'C:\Python27';
+
+cmdString = '';
 
 % Add input to arguments to operating system command to be executed.
 % (If an argument refers to a file on the MATLAB path, use full file path.)
@@ -59,8 +62,7 @@ if isempty(cmdString)
     error(message('MATLAB:python:NoPythonCommand'));
 elseif ispc
     % PC
-    %pythonCmd = fullfile(matlabroot, 'sys\python\win32\bin\');
-    pythonCmd = 'C:\Python27';
+    pythonCmd = pythonRoot;
     cmdString = ['python' cmdString];
     pythonCmd = ['set PATH=',pythonCmd, ';%PATH%&' cmdString];
     [status, result] = dos(pythonCmd);
