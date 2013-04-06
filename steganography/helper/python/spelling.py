@@ -12,6 +12,8 @@ def train(features):
 
 alphabet = 'abcdefghijklmnopqrstuvwxyz'
 
+punctuation = ',.\'"!?'
+
 NWORDS = train(words(file('steganography/helper/python/spelling_trainer.txt').read()))
 
 def edits1(word):
@@ -33,7 +35,35 @@ def correct(word):
 
 def correct_sentence(sentence):
 	for word in shlex.split(sentence):
-		yield correct(word)
+		# Don't correct short words
+		if len(word) <= 1:
+			yield word
+		else:
+			# Remove punctuation (because correct() strips all punctuation)
+			word_start = ''
+			word_end = ''
+			if word[0] in punctuation:
+				word_start = word[0]
+				word = word[1:]
+			if word[len(word)-1] in punctuation:
+				word_end = word[len(word)-1]
+				word = word[:len(word)-1]
+
+			word_corrected = correct(word)
+
+			# Remember case
+			if len(word) >= 1 and len(word_corrected) >= 1 and word[0].isupper():
+				word_corrected = word_corrected[0].upper() + word_corrected[1:]
+
+
+			# Put punctuation back
+			
+			if len(word_start) > 0:
+				word_corrected = word_start + word_corrected
+			if len(word_end) > 0:
+				word_corrected = word_corrected + word_end
+			
+			yield word_corrected
 
 if __name__ == '__main__':
 	sys.stdout.write(string.join(correct_sentence(str(sys.argv[1])), ' '))

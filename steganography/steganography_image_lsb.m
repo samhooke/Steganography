@@ -50,5 +50,6 @@ im_stego = imread(output_image_filename);
 imc_stego = im_stego(:,:,channel);
 
 extracted_msg_bin = steg_lsb_decode(imc_stego);
-extracted_msg_str = bin2str(extracted_msg_bin);
-disp(extracted_msg_str);
+
+% Print statistics
+steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_bin);
