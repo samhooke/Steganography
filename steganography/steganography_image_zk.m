@@ -60,13 +60,6 @@ imc_stego = im_stego(:,:,channel);
 [extracted_msg_bin, invalid_blocks_decode, debug_invalid_decode] = steg_zk_decode(imc_stego, frequency_coefficients, minimum_distance_decode);
 carrier_diff = (imc - imc_stego) .^ 2;
 
-%{
-%TODO: This section does not work
-limit = 100;
-secret_msg_binstr = char(secret_msg_bin(1:limit)+'0');
-retrieved_msg_binstr = char(extracted_msg_bin(1:limit)+'0');
-msg_match = isequal(secret_msg_bin(1:200), extracted_msg_bin(1:200));
-%}
 % Display images
 subplot(2,3,1);
 imshow(im);

@@ -23,7 +23,7 @@ imc_error_sum = sum(imc_error);
 fprintf('Image error: %d\n', sum(imc_error_sum));
 fprintf('Encoded message: %s\n', secret_msg_str);
 fprintf('Decoded message: %s\n', extracted_msg_str);
-fprintf('Message similarity: %2.2f%%\n', msg_similarity * 100');
+fprintf('Message similarity: ~%2.2f%%\n', msg_similarity * 100');
 
 end
 
