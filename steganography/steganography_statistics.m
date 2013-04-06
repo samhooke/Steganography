@@ -8,6 +8,9 @@ function steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_
 % OUTPUTS
 %    Prints out statistics.
 
+% Calculate message similarity
+msg_similarity = py_string_similarity(sprintf('%d', secret_msg_bin), sprintf('%d', extracted_msg_bin));
+
 % Convert binary messages to string
 secret_msg_str = bin2str(secret_msg_bin);
 extracted_msg_str = bin2str(extracted_msg_bin);
@@ -20,6 +23,7 @@ imc_error_sum = sum(imc_error);
 fprintf('Image error: %d\n', sum(imc_error_sum));
 fprintf('Encoded message: %s\n', secret_msg_str);
 fprintf('Decoded message: %s\n', extracted_msg_str);
+fprintf('Message similarity: %d\n', msg_similarity');
 
 end
 
