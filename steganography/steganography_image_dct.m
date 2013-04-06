@@ -1,6 +1,9 @@
 steganography_init();
 
-%@@ Image used as carrier for encoding message
+% Encode
+% ======
+
+%@@ Input image and output location
 carrier_image_filename = 'input\lena.jpg';
 output_image_filename = 'output\lena_dct.jpg';
 
@@ -17,28 +20,28 @@ output_quality = 75;
 % Load image, generate message if necessary
 im = imread(carrier_image_filename);
 [w h] = size(im);
-msg_length_max = w / (8 * 8) * h / (8 * 8);
+msg_length_max = w / 8 * h / 8; % One bit per 8x8
+msg_length_max = msg_length_max / 8; % Convert to bytes
 if secret_msg_str == ''
     secret_msg_str = generate_test_message(msg_length_max);
 end;
 secret_msg_bin = str2bin(secret_msg_str);
 
-% Take chosen channel from the image
+% Take chosen channel from the image and encode
 imc = im(:,:,channel);
-
-% Encode on the one channel
 frequency_coefficients = [3 6; 5 2];
 [imc_stego bits_written bits_unused] = steg_dct_encode(secret_msg, imc, frequency_coefficients, 25);
 
-% Put the channels back together
+% Put the channels back together, and write
 im_stego = im;
 im_stego(:,:,channel) = imc;
-
-% Write and read
 imwrite(im_stego, output_image_filename, 'Quality', output_quality);
-im_stego = imread(output_image_filename);
 
-% Take chosen channel from the image
+% Decode
+% ======
+
+% Read image and take chosen channel
+im_stego = imread(output_image_filename);
 imc = im(:,:,channel);
 
 % Decode

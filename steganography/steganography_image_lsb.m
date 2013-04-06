@@ -17,7 +17,8 @@ channel = 3;
 % Load image, generate message if necessary
 im = imread(carrier_image_filename);
 [w h] = size(im);
-msg_length_max = w / 8 * h / 8;
+msg_length_max = w * h; % One bit per pixel
+msg_length_max = msg_length_max / 8; % Convert to bytes
 if secret_msg_str == ''
     secret_msg_str = generate_test_message(msg_length_max);
 end;
