@@ -1,11 +1,12 @@
-steganography_init();
+clear variables;
+[dir_input, dir_output] = steganography_init();
 
 % Encode
 % ======
 
 %@@ Input image and output location
-carrier_image_filename = 'input\lena.jpg';
-output_image_filename = 'output\lena_fusion.jpg';
+carrier_image_filename = [dir_input, 'lena.jpg'];
+output_image_filename = [dir_output, 'lena_fusion.jpg'];
 
 %@@ Message string to encode into carrier image
 %@@ Leave blank to automatically generate a message
@@ -22,10 +23,10 @@ mode = 'db1';
 
 % Load image, generate message if necessary
 im = imread(carrier_image_filename);
-[w h] = size(im);
+[w h ~] = size(im);
 msg_length_max = w / 16 * h / 16; % One bit per 8x8, in one quarter
 msg_length_max = msg_length_max / 8; % Convert to bytes
-if secret_msg_str == ''
+if isempty(secret_msg_str)
     secret_msg_str = generate_test_message(msg_length_max);
 end;
 secret_msg_bin = str2bin(secret_msg_str);

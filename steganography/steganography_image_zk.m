@@ -1,7 +1,12 @@
-steganography_init();
+clear variables;
+[dir_input, dir_output] = steganography_init();
 
-%@@ Image used as carrier for encoding message
-carrier_image_filename = 'input/lena.jpg';
+% Encode
+% ======
+
+%@@ Input image and output location
+carrier_image_filename = [dir_input, 'lena.jpg'];
+output_image_filename = [dir_output, 'lena_zk.jpg'];
 
 %@@ Message string to encode into carrier image
 secret_msg_str = 'Test post; please ignore!';
@@ -17,8 +22,8 @@ frequency_coefficients = generate_allowed_coefficients();%;[4 6; 5 2; 6 5];%[4 3
 [carrier_stego bits_written bits_unused invalid_blocks_encode debug_invalid_encode] = steg_zk_encode(secret_msg, carrier_original, frequency_coefficients, variance_threshold, minimum_distance_encode);
 
 % Write to file and read it again
-imwrite(carrier_stego, 'stego.jpg', 'Quality', 90); % 'Mode', 'lossless'
-carrier_stego = imread('stego.jpg');
+imwrite(carrier_stego, output_image_filename, 'Quality', 90); % 'Mode', 'lossless'
+carrier_stego = imread(output_image_filename);
 
 % Perform decoding
 [retrieved_msg invalid_blocks_decode debug_invalid_decode] = steg_zk_decode(carrier_stego, frequency_coefficients, minimum_distance_decode);
