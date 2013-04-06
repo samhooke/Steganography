@@ -1,35 +1,31 @@
-clear all;
+% Here are some tests of the very basic spellchecker in python, executed
+% from Matlab. Sentences are corrected on a word-by-word basis. The system
+% slows down noticably at as few as 100 words. The whole process is slow
+% and clunky.
+
+%% Test of spelling.py
 clc;
 
-steganography_init();
+% Command is short so pass directly
+sentence = 'I am noot vry goood at speeeling';
 
-%s = 'Ôo SherlGsk Hclmes shd is`álw!9s thd@womaj. I have wEldom `eqrd ham mention(he2 under any gther name.';
-s = 'test post please ignore';
-r = python('spelling.py', base64encode(s));
-disp(s);
-disp(r);
+corrected = python('spelling.py', base64encode(sentence));
 
-%%
+disp(sentence);
+disp(corrected);
 
-s = 'a';
-
-filename = 'output\temp.txt';
-fid = fopen(filename, 'w');
-fprintf(fid, '%s', base64encode(s));
-fclose(fid);
-
-r = python('spelling_long.py', filename);
-
-disp(s);
-disp(r);
-
-%%
+%% Test of spelling_long.py
+clc;
 
 % Command is too long, so pass through a temporary file
+sentence = repmat('I am noot vry goood at speeeling ', 1, 10);
+
 filename = 'output\spelling_temp.txt';
 fid = fopen(filename, 'w');
 fprintf(fid, '%s', base64encode(sentence));
 fclose(fid);
+
 corrected = python('spelling_long.py', filename);
 
-disp(corrected)
+disp(sentence);
+disp(corrected);

@@ -8,10 +8,19 @@ function steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_
 % OUTPUTS
 %    Prints out statistics.
 
-try_correcting_spelling = true;
+%@@ Whether to output the message decoded from binary
+output_message_strings = false;
 
-% Calculate message similarity
-msg_similarity = py_string_similarity(char(secret_msg_bin + 48), char(extracted_msg_bin + 48));
+%@@ Whether to calculate message similarity at binary level
+calculate_message_similarity = true;
+
+%@@ Leave at false - spelling correction is far too slow
+try_correcting_spelling = false;
+
+if calculate_message_similarity
+    % Calculate message similarity
+    msg_similarity = py_string_similarity(char(secret_msg_bin + 48), char(extracted_msg_bin + 48));
+end
 
 % Convert binary messages to string
 secret_msg_str = bin2str(secret_msg_bin);
@@ -30,29 +39,25 @@ imc_error_sum = sum(imc_error);
 
 % Show statistics
 fprintf('Image error: %d\n', sum(imc_error_sum));
-fprintf('Encoded message: %s\n', secret_msg_str);
-fprintf('Decoded message: %s\n', extracted_msg_str);
 
-if try_correcting_spelling
-    fprintf('Corrected message: %s\n', corrected_msg_str);
+if output_message_strings
+    fprintf('Encoded message: %s\n', secret_msg_str);
+    fprintf('Decoded message: %s\n', extracted_msg_str);
+
+    if try_correcting_spelling
+        fprintf('Corrected message: %s\n', corrected_msg_str);
+    end
 end
 
-fprintf('Message similarity: ~%2.2f%%\n', msg_similarity * 100);
-
+if calculate_message_similarity
+    fprintf('Message similarity: ~%2.2f%%\n', msg_similarity * 100);
+end
+    
 if try_correcting_spelling
-    % TODO: Similarity is biased towards shorter strongs
+    % TODO: Similarity is biased towards shorter strings
     % The correct string often comes out shorter because of the processing
     fprintf('Corrected similarity: ~%2.2f%%\n', msg_similarity_corrected * 100);
 end
 
-%{
-disp('secret vs extracted');
-disp(char(secret_msg_bin + 48));
-disp(char(extracted_msg_bin + 48));
-
-disp('secret vs corrected');
-disp(char(secret_msg_bin + 48));
-disp(char(corrected_msg_bin + 48));
-%}
 end
 

@@ -34,7 +34,6 @@ def correct(word):
 	return max(candidates, key=NWORDS.get)
 
 def correct_sentence(sentence):
-	#for word in shlex.split(sentence, False, False):
 	for word in sentence.split():
 		# Don't correct short words
 		if len(word) <= 1:
@@ -65,6 +64,7 @@ def correct_sentence(sentence):
 			yield word_corrected
 
 if __name__ == '__main__':
+	# Data is base64 encoded to avoid issues when passing
 	sentence_encoded = str(sys.argv[1])
 	sentence = base64.b64decode(sentence_encoded)
 	sys.stdout.write(string.join(correct_sentence(sentence), ' '))
