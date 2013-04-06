@@ -49,10 +49,10 @@ im_stego = imread(output_image_filename);
 imc = im(:,:,channel);
 
 % Decode
-[retrieved_msg_bin] = steg_dct_decode(imc_stego, frequency_coefficients);
+[extracted_msg_bin] = steg_dct_decode(imc_stego, frequency_coefficients);
 
 % Verify and compare difference
-msg_match = isequal(secret_msg_bin(1:200), retrieved_msg_bin(1:200));
+msg_match = isequal(secret_msg_bin, extracted_msg_bin);
 difference = (imc - imc_stego) .^ 2;
 difference_sum = sum(difference);
 
@@ -68,6 +68,4 @@ imshow(difference);
 title('Difference');
 
 % Print statistics
-fprintf('Difference: %d\n', sum(difference_sum));
-disp(['Encoded message: ', bin2str(secret_msg_bin)]);
-disp(['Decoded message: ', bin2str(retrieved_msg_bin)]);
+steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_bin);

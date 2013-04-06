@@ -70,5 +70,6 @@ imc_stego = im_stego(:,:,channel);
 
 % Extract message
 [extracted_msg_bin] = steg_wdct_decode(imc_stego, mode, frequency_coefficients);
-extracted_msg_str = bin2str(extracted_msg_bin);
-fprintf('Extracted (%d bytes): %s\n', length(extracted_msg_str), extracted_msg_str);
+
+% Print statistics
+steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_bin);

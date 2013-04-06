@@ -57,15 +57,16 @@ im_stego = imread(output_image_filename);
 imc_stego = im_stego(:,:,channel);
 
 % Perform decoding
-[retrieved_msg, invalid_blocks_decode, debug_invalid_decode] = steg_zk_decode(imc_stego, frequency_coefficients, minimum_distance_decode);
+[extracted_msg_bin, invalid_blocks_decode, debug_invalid_decode] = steg_zk_decode(imc_stego, frequency_coefficients, minimum_distance_decode);
 carrier_diff = (imc - imc_stego) .^ 2;
 
+%{
 %TODO: This section does not work
 limit = 100;
 secret_msg_binstr = char(secret_msg_bin(1:limit)+'0');
-retrieved_msg_binstr = char(retrieved_msg(1:limit)+'0');
-msg_match = isequal(secret_msg_bin(1:200), retrieved_msg(1:200));
-
+retrieved_msg_binstr = char(extracted_msg_bin(1:limit)+'0');
+msg_match = isequal(secret_msg_bin(1:200), extracted_msg_bin(1:200));
+%}
 % Display images
 subplot(2,3,1);
 imshow(im);
@@ -88,14 +89,6 @@ imshow(~(debug_invalid_encode - debug_invalid_decode));
 title('Invalid diff');
 
 % Print statistics
-disp(['Encoded message (bin): ', secret_msg_binstr]);
-disp(['Decoded message (bin): ', retrieved_msg_binstr]);
-disp(['Encoded message (str): ', bin2str(secret_msg_bin)]);
-disp(['Decoded message (str): ', bin2str(retrieved_msg)]);
-if (msg_match)
-    disp('SUCCESS: Messages match!');
-else
-    disp('FAILURE: Messages do not match.');
-end
+steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_bin);
 
 %fprintf('Invalid blocks: (encode=%d) (decode=%d)', invalid_blocks_encode, invalid_blocks_decode);
