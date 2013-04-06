@@ -35,6 +35,7 @@ if isempty(secret_msg_str)
 end;
 secret_msg_bin = str2bin(secret_msg_str);
 
+% Take the chosen colour channel
 im = double(im);
 imc = im(:,:,channel);
 

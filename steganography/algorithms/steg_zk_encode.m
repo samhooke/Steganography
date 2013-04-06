@@ -1,4 +1,4 @@
-function [stego, bits_written, bits_unused, invalid_blocks, debug_invalid_encode] = steg_encode_zk(secret_bin, carrier, frequency_coefficients, variance_threshold, minimum_distance)
+function [stego, bits_written, bits_unused, invalid_blocks, debug_invalid_encode] = steg_zk_encode(secret_bin, carrier, frequency_coefficients, variance_threshold, minimum_distance)
 % steg_encode_dct Encodes binary data within the transform domain
 % INPUTS
 %   secret       - Stream of binary data to hide.
