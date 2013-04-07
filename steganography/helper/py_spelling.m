@@ -7,7 +7,7 @@ function corrected = py_spelling(sentence)
 %    corrected - A copy of `sentence` with spelling mistakes fixed
 
 % DOS limits command line call length. Ensure that this is not passed.
-if length(sentence) < 6000
+if length(sentence) < 0
     % Command is short enough, so pass through command line
     corrected = python('spelling.py', base64encode(sentence));
 else
@@ -16,7 +16,7 @@ else
     fid = fopen(filename, 'w');
     fprintf(fid, '%s', base64encode(sentence));
     fclose(fid);
-    corrected = python('spelling_long.py', filename);
+    corrected = base64decode(python('spelling_long.py', filename));
 end
 
 end

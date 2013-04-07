@@ -17,7 +17,7 @@ secret_msg_str = '';
 channel = 3;
 
 %@@ Output image quality
-output_quality = 75;
+output_quality = 60;
 
 %@@ Coefficients
 frequency_coefficients = [3 6; 5 2];
@@ -25,7 +25,8 @@ frequency_coefficients = [3 6; 5 2];
 % Load image, generate message if necessary
 im = imread(carrier_image_filename);
 
-im = rgb2hsv(im);
+im = rgb2gray(im);
+%%%im = rgb2hsv(im);
 
 [w h ~] = size(im);
 msg_length_max = w / 8 * h / 8; % One bit per 8x8
@@ -36,14 +37,16 @@ end;
 secret_msg_bin = str2bin(secret_msg_str);
 
 % Take chosen channel from the image and encode
-imc = im(:,:,channel);
-[imc_stego bits_written bits_unused] = steg_dct_encode(secret_msg_bin, imc, frequency_coefficients, 0.01);
+imc = im;
+%%%imc = im(:,:,channel);
+[imc_stego bits_written bits_unused] = steg_dct_encode(secret_msg_bin, imc, frequency_coefficients, 25);
 
 % Put the channels back together, and write
-im_stego = im;
-im_stego(:,:,channel) = imc_stego;
+im_stego = imc_stego;
+%%%im_stego = im;
+%%%im_stego(:,:,channel) = imc_stego;
 
-im_stego = hsv2rgb(im_stego);
+%%%im_stego = hsv2rgb(im_stego);
 
 imwrite(im_stego, output_image_filename, 'Quality', output_quality);
 
@@ -53,9 +56,10 @@ imwrite(im_stego, output_image_filename, 'Quality', output_quality);
 % Read image and take chosen channel
 im_stego = imread(output_image_filename);
 
-im_stego = rgb2hsv(im_stego);
+%%%im_stego = rgb2hsv(im_stego);
 
-imc_stego = im_stego(:,:,channel);
+imc_stego = im_stego;
+%%%imc_stego = im_stego(:,:,channel);
 
 % Decode
 [extracted_msg_bin] = steg_dct_decode(imc_stego, frequency_coefficients);

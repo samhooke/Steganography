@@ -33,7 +33,7 @@ def correct(word):
 	candidates = known([word]) or known(edits1(word)) or known_edits2(word) or [word]
 	return max(candidates, key=NWORDS.get)
 
-def correct_sentence(sentence):
+def correct_sentence_words(sentence):
 	for word in sentence.split():
 		# Don't correct short words
 		if len(word) <= 1:
@@ -63,8 +63,11 @@ def correct_sentence(sentence):
 			
 			yield word_corrected
 
+def correct_sentence(sentence):
+	return string.join(correct_sentence_words(sentence), ' ')
+
 if __name__ == '__main__':
 	# Data is base64 encoded to avoid issues when passing
 	sentence_encoded = str(sys.argv[1])
 	sentence = base64.b64decode(sentence_encoded)
-	sys.stdout.write(string.join(correct_sentence(sentence), ' '))
+	sys.stdout.write(correct_sentence(sentence), ' ')

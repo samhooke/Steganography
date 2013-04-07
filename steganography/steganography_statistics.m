@@ -9,13 +9,13 @@ function steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_
 %    Prints out statistics.
 
 %@@ Whether to output the message decoded from binary
-output_message_strings = false;
+output_message_strings = true;
 
 %@@ Whether to calculate message similarity at binary level
 calculate_message_similarity = true;
 
 %@@ Leave at false - spelling correction is far too slow
-try_correcting_spelling = false;
+try_correcting_spelling = true;
 
 if calculate_message_similarity
     % Calculate message similarity
