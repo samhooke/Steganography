@@ -1,29 +1,42 @@
-% Get rid of junk
-clear all;
-close all;
 clc;
+clear variables;
+[dir_input, dir_output] = steganography_init();
+
+% Encode
+% ======
 
 %@@ Input image and output location
-carrier_image_filename = 'input\lena.jpg';
-output_image_filename = 'output\lena_haar.jpg';
-output_quality = 97;
-cd('C:\Users\Muffin\Documents\GitHub\Steganography');
+carrier_image_filename = [dir_input, 'lena.jpg'];
+output_image_filename = [dir_output, 'lena_wdct.jpg'];
 
 %@@ Message string to encode into carrier image
-msg = 'Test post; please ignore!/\/\/\/';
-secret_msg_str = repmat(msg, 1, 128/length(msg));
-
-%@@ Transform function
-mode = 'db1';
+%@@ Leave blank to automatically generate a message
+secret_msg_str = '';
 
 %@@ Colour channel
 channel = 2;
 
+%@@ Output image quality
+output_quality = 97;
+
+%@@ Transform function
+mode = 'db1';
+
 %@@ Coefficients
 frequency_coefficients = [7 6; 5 2];
 
+% Load image, generate message if necessary
+im = imread(carrier_image_filename);
+[w h ~] = size(im);
+msg_length_max = w / 16 * h / 16; % One bit per 8x8, in one quarter
+msg_length_max = msg_length_max / 8; % Convert to bytes
+if isempty(secret_msg_str)
+    secret_msg_str = generate_test_message(msg_length_max);
+end;
 secret_msg_bin = str2bin(secret_msg_str);
-im = double(imread(carrier_image_filename));
+
+% Take the chosen colour channel
+im = double(im);
 imc = im(:,:,channel);
 
 [imc_stego, im_wavelet] = steg_wdct_encode(imc, secret_msg_bin, mode, frequency_coefficients);
@@ -45,12 +58,18 @@ subplot(2,2,4);
 imshow((imc-imc_stego).^2, [0 255]);
 title('difference');
 
-% Write and read
+% Write
 imwrite(uint8(im_stego), output_image_filename, 'Quality', output_quality);
+
+% Decode
+% ======
+
+% Read and take chosen channel
 im_stego = double(imread(output_image_filename));
 imc_stego = im_stego(:,:,channel);
 
 % Extract message
 [extracted_msg_bin] = steg_wdct_decode(imc_stego, mode, frequency_coefficients);
-extracted_msg_str = bin2str(extracted_msg_bin);
-fprintf('Extracted (%d bytes): %s\n', length(extracted_msg_str), extracted_msg_str);
+
+% Print statistics
+steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_bin);

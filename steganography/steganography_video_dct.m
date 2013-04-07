@@ -10,22 +10,36 @@ carrier_video_filename = 'input\bunny.mp4';
 cd('C:\Users\Muffin\Documents\GitHub\Steganography');
 
 %@@ Output video, format and compression
-profile_type = 3;
+profile_type = 6;
 
 switch profile_type
     case 1
-        profile = 'Motion JPEG AVI';
-        output_video_filename = 'output\bunny_dct_MJAVI.avi';
+        profile = 'Archival';
+        output_video_profilename = 'ARCH';
+        output_video_ext = '.mj2';
     case 2
-        profile = 'Uncompressed AVI';
-        output_video_filename = 'output\bunny_dct_UnAVI.avi';
+        profile = 'Motion JPEG AVI';
+        output_video_profilename = 'MJAVI';
+        output_video_ext = '.avi';
     case 3
         profile = 'Motion JPEG 2000';
-        output_video_filename = 'output\bunny_dct_MJ2k.mj2';
+        output_video_profilename = 'MJ2k';
+        output_video_ext = '.mj2';
+    case 4
+        profile = 'MPEG-4';
+        output_video_profilename = 'MPEG4';
+        output_video_ext = '.mp4';
+    case 5
+        profile = 'Uncompressed AVI';
+        output_video_profilename = 'UnAVI';
+        output_video_ext = '.avi';
     otherwise
         fprintf('Invalid profile_type\n');
         break;
 end;
+
+output_video_filename_base = 'output\bunny_dct';
+output_video_filename = [output_video_filename_base, ' ', output_video_profilename, output_video_ext];
 
 %@@ Message string to encode into carrier video
 secret_msg_str = '0123456789__________0123456789----------';
@@ -74,12 +88,12 @@ for num = 1:frame_count
     
     if strcmp(colourspace, 'hsv')
         framec_max = 255;
-        alpha = 30;
+        %alpha = -10;
         
         framec = frame(:,:,channel) * framec_max;
         
-        framec(framec < alpha) = alpha;
-        framec(framec > (framec_max - alpha)) = (framec_max - alpha);
+        %framec(framec < alpha) = alpha;
+        %framec(framec > (framec_max - alpha)) = (framec_max - alpha);
     else
         framec = frame(:,:,channel);
     end;
