@@ -1,44 +1,84 @@
-% Get rid of junk
-clear all;
-close all;
 clc;
+clear variables;
+[dir_input, dir_output] = steganography_init();
 
-%@@ Image used as carrier for encoding message
-carrier_image_filename = 'input/lena.jpg';
+% Encode
+% ======
+
+%@@ Input image and output location
+carrier_image_filename = [dir_input, 'lena.jpg'];
+output_image_filename = [dir_output, 'lena_dct.jpg'];
 
 %@@ Message string to encode into carrier image
-secret_msg_str = 'Test post; please ignore!';
+%@@ Leave blank to automatically generate a message
+secret_msg_str = '';
+
+%@@ Which colour channel to use (1=r, 2=g, 3=b)
+channel = 3;
 
 %@@ Output image quality
-output_quality = 75;
+output_quality = 60;
 
-carrier_original = rgb2gray(imread(carrier_image_filename));
-secret_msg = str2bin(secret_msg_str);
-
-% Encode, write, read, decode
+%@@ Coefficients
 frequency_coefficients = [3 6; 5 2];
-[carrier_stego bits_written bits_unused] = steg_dct_encode(secret_msg, carrier_original, frequency_coefficients, 25);
-imwrite(carrier_stego, 'stego_temp.jpg', 'Quality', output_quality);
-carrier_stego = imread('stego_temp.jpg');
-[retrieved_msg] = steg_dct_decode(carrier_stego, frequency_coefficients);
+
+% Load image, generate message if necessary
+im = imread(carrier_image_filename);
+
+im = rgb2gray(im);
+%%%im = rgb2hsv(im);
+
+[w h ~] = size(im);
+msg_length_max = w / 8 * h / 8; % One bit per 8x8
+msg_length_max = msg_length_max / 8; % Convert to bytes
+if isempty(secret_msg_str)
+    secret_msg_str = generate_test_message(msg_length_max);
+end;
+secret_msg_bin = str2bin(secret_msg_str);
+
+% Take chosen channel from the image and encode
+imc = im;
+%%%imc = im(:,:,channel);
+[imc_stego bits_written bits_unused] = steg_dct_encode(secret_msg_bin, imc, frequency_coefficients, 25);
+
+% Put the channels back together, and write
+im_stego = imc_stego;
+%%%im_stego = im;
+%%%im_stego(:,:,channel) = imc_stego;
+
+%%%im_stego = hsv2rgb(im_stego);
+
+imwrite(im_stego, output_image_filename, 'Quality', output_quality);
+
+% Decode
+% ======
+
+% Read image and take chosen channel
+im_stego = imread(output_image_filename);
+
+%%%im_stego = rgb2hsv(im_stego);
+
+imc_stego = im_stego;
+%%%imc_stego = im_stego(:,:,channel);
+
+% Decode
+[extracted_msg_bin] = steg_dct_decode(imc_stego, frequency_coefficients);
 
 % Verify and compare difference
-msg_match = isequal(secret_msg(1:200), retrieved_msg(1:200));
-difference = (carrier_original - carrier_stego) .^ 2;
+msg_match = isequal(secret_msg_bin, extracted_msg_bin);
+difference = (imc - imc_stego) .^ 2;
 difference_sum = sum(difference);
 
 % Display images
 subplot(1,3,1);
-imshow(carrier_original);
+imshow((im));
 title('Carrier');
 subplot(1,3,2);
-imshow(carrier_stego);
+imshow((im_stego));
 title('Stego image');
 subplot(1,3,3);
 imshow(difference);
 title('Difference');
 
 % Print statistics
-fprintf('Difference: %d\n', sum(difference_sum));
-disp(['Encoded message: ', bin2str(secret_msg)]);
-disp(['Decoded message: ', bin2str(retrieved_msg)]);
+steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_bin);

@@ -1,19 +1,23 @@
-% Get rid of junk
-clear all;
-close all;
 clc;
-clf;
+clear variables;
+[dir_input, dir_output] = steganography_init();
 
 % Encode
 % ======
 
 %@@ Input image and output location
-carrier_image_filename = 'input\lena.jpg';
-output_image_filename = 'output\lena_haar.jpg';
-cd('C:\Users\Muffin\Documents\GitHub\Steganography');
+carrier_image_filename = [dir_input, 'lena.jpg'];
+output_image_filename = [dir_output, 'lena_fusion.jpg'];
 
 %@@ Message string to encode into carrier image
-secret_msg_str = 'Test post; please ignore!';
+%@@ Leave blank to automatically generate a message
+secret_msg_str = '';
+
+%@@ Which colour channel to use (1=r, 2=g, 3=b)
+channel = 3;
+
+%@@ Output image quality
+output_quality = 100;
 
 %@@ Alpha value for encoding
 alpha = 0.05;
@@ -21,16 +25,22 @@ alpha = 0.05;
 %@@ Wavelet transformation
 mode = 'db1';
 
-%@@ Which colour channel to use (1=r, 2=g, 3=b)
-channel = 3;
-
+% Load image, generate message if necessary
 im = imread(carrier_image_filename);
-imb = im(:,:,channel);
+[w h ~] = size(im);
+msg_length_max = w / 16 * h / 16; % One bit per 8x8, in one quarter
+msg_length_max = msg_length_max / 8; % Convert to bytes
+if isempty(secret_msg_str)
+    secret_msg_str = generate_test_message(msg_length_max);
+end;
+secret_msg_bin = str2bin(secret_msg_str);
 
-[imb_stego, im_wavelet_original, im_wavelet_stego] = steg_fusion_encode(imb, str2bin(secret_msg_str), alpha, mode);
+% Take chosen channel and encode
+imc = im(:,:,channel);
+[imc_stego, im_wavelet_original, im_wavelet_stego] = steg_fusion_encode(imc, secret_msg_bin, alpha, mode);
 
 im_stego = im;
-im_stego(:,:,channel) = imb_stego;
+im_stego(:,:,channel) = imc_stego;
 
 % Output
 subplot(2,2,1);
@@ -46,7 +56,7 @@ subplot(2,2,4);
 imshow(im_stego);
 title('Stego image');
 
-imwrite(im_stego, output_image_filename, 'quality', 100);
+imwrite(im_stego, output_image_filename, 'quality', output_quality);
 
 % Decode
 % ======
@@ -54,11 +64,12 @@ imwrite(im_stego, output_image_filename, 'quality', 100);
 im_stego = imread(output_image_filename);
 im_original = imread(carrier_image_filename);
 
-imb_stego = im_stego(:,:,channel);
+imc_stego = im_stego(:,:,channel);
 imb_original = im_original(:,:,channel);
 
-[extracted_msg_bin] = steg_fusion_decode(imb_stego, imb_original, mode);
+[extracted_msg_bin] = steg_fusion_decode(imc_stego, imb_original, mode);
 
 extracted_msg_str = bin2str(extracted_msg_bin);
 
-fprintf('Extracted message: %s\n', extracted_msg_str);
+% Print statistics
+steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_bin);

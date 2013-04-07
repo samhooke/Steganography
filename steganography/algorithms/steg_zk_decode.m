@@ -1,4 +1,4 @@
-function [secret, invalid_blocks, debug_invalid_decode] = steg_decode_zk(stego, frequency_coefficients, invalid_distance)
+function [secret, invalid_blocks, debug_invalid_decode] = steg_zk_decode(stego, frequency_coefficients, invalid_distance)
 % steg_decode_dct Retrieves data encoded with steg_encode_dct
 % INPUTS
 %   stego  - Steganographic image to retrieve data from

@@ -13,3 +13,10 @@ slprj/
 # Steganography video output
 *.avi
 *.mj2
+*.mp4
+
+# Ignore output files
+output/*
+
+# Python
+*.py[cod]

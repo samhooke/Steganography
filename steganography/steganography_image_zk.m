@@ -1,44 +1,71 @@
-% Get rid of junk
-clear all;
-close all;
 clc;
+clear variables;
+[dir_input, dir_output] = steganography_init();
 
-%@@ Image used as carrier for encoding message
-carrier_image_filename = 'input/lena.jpg';
+% Encode
+% ======
+
+%@@ Input image and output location
+carrier_image_filename = [dir_input, 'lena.jpg'];
+output_image_filename = [dir_output, 'lena_zk.jpg'];
 
 %@@ Message string to encode into carrier image
-secret_msg_str = 'Test post; please ignore!';
+%@@ Leave blank to automatically generate a message
+secret_msg_str = '';
 
-carrier_original = rgb2gray(imread(carrier_image_filename));
-secret_msg = str2bin(secret_msg_str);
+%@@ Which colour channel to use (1=r, 2=g, 3=b)
+channel = 3;
+
+%@@ Output image quality
+output_quality = 90;
+
+%@@ Coefficients
+frequency_coefficients = generate_allowed_coefficients();%;[4 6; 5 2; 6 5];%[4 3; 3 3; 3 4];
+
+% Load image, generate message if necessary
+im = imread(carrier_image_filename);
+[w h ~] = size(im);
+% NOTE: By definition the ZK implementation skips some blocks, so the below
+% calculation for msg_length_max is a best case estimation.
+msg_length_max = w / 8 * h / 8; % One bit per 8x8
+msg_length_max = msg_length_max / 8; % Convert to bytes
+if isempty(secret_msg_str)
+    secret_msg_str = generate_test_message(msg_length_max);
+end;
+secret_msg_bin = str2bin(secret_msg_str);
+
+% Take the chosen colour channel
+imc = im(:,:,channel);
 
 % Perform encoding
 variance_threshold = 3; % Higher = more blocks used
 minimum_distance_encode = 30; % Higher = more robust; more visible
 minimum_distance_decode = 10;
-frequency_coefficients = generate_allowed_coefficients();%;[4 6; 5 2; 6 5];%[4 3; 3 3; 3 4];
-[carrier_stego bits_written bits_unused invalid_blocks_encode debug_invalid_encode] = steg_zk_encode(secret_msg, carrier_original, frequency_coefficients, variance_threshold, minimum_distance_encode);
+[imc_stego, bits_written, bits_unused, invalid_blocks_encode, debug_invalid_encode] = steg_zk_encode(secret_msg_bin, imc, frequency_coefficients, variance_threshold, minimum_distance_encode);
 
-% Write to file and read it again
-imwrite(carrier_stego, 'stego.jpg', 'Quality', 90); % 'Mode', 'lossless'
-carrier_stego = imread('stego.jpg');
+% Create the stego image, replacing the chosen colour channel
+im_stego = im;
+im_stego(:,:,channel) = imc_stego;
+
+% Write to file
+imwrite(im_stego, output_image_filename, 'Quality', output_quality, 'Mode', 'lossless');
+
+% Decode
+% ======
+
+im_stego = imread(output_image_filename);
+imc_stego = im_stego(:,:,channel);
 
 % Perform decoding
-[retrieved_msg invalid_blocks_decode debug_invalid_decode] = steg_zk_decode(carrier_stego, frequency_coefficients, minimum_distance_decode);
-carrier_diff = (carrier_original - carrier_stego) .^ 2;
-
-%imwrite(carrier_diff, 'diff.jpg');
-limit = 100;
-secret_msg_binstr = char(secret_msg(1:limit)+'0');
-retrieved_msg_binstr = char(retrieved_msg(1:limit)+'0');
-msg_match = isequal(secret_msg(1:200), retrieved_msg(1:200));
+[extracted_msg_bin, invalid_blocks_decode, debug_invalid_decode] = steg_zk_decode(imc_stego, frequency_coefficients, minimum_distance_decode);
+carrier_diff = (imc - imc_stego) .^ 2;
 
 % Display images
 subplot(2,3,1);
-imshow(carrier_original);
+imshow(im);
 title('Lena (carrier)');
 subplot(2,3,2);
-imshow(carrier_stego);
+imshow(im_stego);
 title('Lena (stego)');
 subplot(2,3,3);
 imshow(carrier_diff);
@@ -55,14 +82,6 @@ imshow(~(debug_invalid_encode - debug_invalid_decode));
 title('Invalid diff');
 
 % Print statistics
-disp(['Encoded message (bin): ', secret_msg_binstr]);
-disp(['Decoded message (bin): ', retrieved_msg_binstr]);
-disp(['Encoded message (str): ', bin2str(secret_msg)]);
-disp(['Decoded message (str): ', bin2str(retrieved_msg)]);
-if (msg_match)
-    disp('SUCCESS: Messages match!');
-else
-    disp('FAILURE: Messages do not match.');
-end
+steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_bin);
 
 %fprintf('Invalid blocks: (encode=%d) (decode=%d)', invalid_blocks_encode, invalid_blocks_decode);
