@@ -9,17 +9,26 @@ function steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_
 %    Prints out statistics.
 
 %@@ Whether to output the message decoded from binary
+%@@ Also whether they should be truncated. Set to 0 to display full string
 output_message_strings = true;
+output_message_truncate = 100;%Inf('double');
 
 %@@ Whether to calculate message similarity at binary level
+%@@ _py method calls Python, the other one uses a Matlab function
+calculate_message_similarity_py = true;
 calculate_message_similarity = true;
 
 %@@ Leave at false - spelling correction is far too slow
-try_correcting_spelling = true;
+try_correcting_spelling = false;
+
+if calculate_message_similarity_py
+    % Calculate message similarity (using Python)
+    msg_similarity_py = py_string_similarity(bin2binstr(secret_msg_bin), bin2binstr(extracted_msg_bin));
+end
 
 if calculate_message_similarity
     % Calculate message similarity
-    msg_similarity = py_string_similarity(char(secret_msg_bin + 48), char(extracted_msg_bin + 48));
+    msg_similarity = string_similarity(bin2binstr(secret_msg_bin), bin2binstr(extracted_msg_bin), 0);
 end
 
 % Convert binary messages to string
@@ -30,7 +39,7 @@ if try_correcting_spelling
     % Try performing spelling correction on the output
     corrected_msg_str = py_spelling(extracted_msg_str);
     corrected_msg_bin = str2bin(corrected_msg_str);
-    msg_similarity_corrected = py_string_similarity(char(secret_msg_bin + 48), char(corrected_msg_bin + 48));
+    msg_similarity_corrected = py_string_similarity(bin2binstr(secret_msg_bin), bin2binstr(corrected_msg_bin));
 end
     
 % Calculate error
@@ -41,16 +50,19 @@ imc_error_sum = sum(imc_error);
 fprintf('Image error: %d\n', sum(imc_error_sum));
 
 if output_message_strings
-    fprintf('Encoded message: %s\n', secret_msg_str);
-    fprintf('Decoded message: %s\n', extracted_msg_str);
+    fprintf('Encoded message: %s\n', secret_msg_str(1:min(output_message_truncate, length(secret_msg_str))));
+    fprintf('Decoded message: %s\n', extracted_msg_str(1:min(output_message_truncate, length(extracted_msg_str))));
 
     if try_correcting_spelling
-        fprintf('Corrected message: %s\n', corrected_msg_str);
+        fprintf('Corrected message: %s\n', corrected_msg_str(1:min(output_message_truncate, length(corrected_msg_str))));
     end
 end
 
+if calculate_message_similarity_py
+    fprintf('Message similarity (Python): ~%2.2f%%\n', msg_similarity_py * 100);
+end
 if calculate_message_similarity
-    fprintf('Message similarity: ~%2.2f%%\n', msg_similarity * 100);
+    fprintf('Message similarity (Matlab): ~%2.2f%%\n', msg_similarity * 100);
 end
     
 if try_correcting_spelling

@@ -6,13 +6,19 @@ function [matchPercentage, charsMatch, charsDiff, charsTotal] = string_similarit
 %    s1  - First string to compare
 %    s2  - Second strong to compare
 %    len - How many characters to compare
+%          Set to 0 to compare all
 % OUTPUTS
 %    matchPercentage - A percentage for how many characters match
+%                      Value is a float between 0 and 1
 %    charsMatch      - The absolute number of matching characters
 %    charsDiff       - The absolute number of differing characters
 %    charsTotal      - How many characters were compared
 
-charsTotal = len;%max(length(s1), length(s2));
+if len == 0
+    charsTotal = max(length(s1), length(s2));
+else
+    charsTotal = len;
+end
 charsMatch = 0;
 charsDiff = 0;
 
@@ -29,5 +35,5 @@ for i = 1:charsTotal
     end
 end
 
-matchPercentage = charsMatch / charsTotal * 100;
+matchPercentage = charsMatch / charsTotal;
 end
