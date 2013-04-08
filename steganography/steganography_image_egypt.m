@@ -21,3 +21,14 @@ output_quality = 100;
 
 %@@ Wavelet transformation
 mode = 'db1';
+
+%{
+
+%}
+
+% Decode
+% ======
+
+%{
+
+%}
