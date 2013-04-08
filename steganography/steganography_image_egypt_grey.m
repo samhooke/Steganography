@@ -57,10 +57,10 @@ im_secret = rgb2grayscale(imread(secret_image_filename));
 [cll1 clh1 chl1 chh1] = dwt2(im_carrier, mode);
 [sll1 slh1 shl1 shh1] = dwt2(im_secret, mode);
 
+% SLL1, CLL1 and SHL1
 
-chh1 = steg_dct_encode(secret_msg_bin, chh1, frequency_coefficients, persistence);
-im_wavelet = [cll1, clh1; chl1, chh1];
-im = idwt2(cll1, clh1, chl1, chh1, mode);
+%im_wavelet = [cll1, clh1; chl1, chh1];
+%im_stego = idwt2(cll1, clh1, chl1, chh1, mode);
 
 % Decode
 % ======
