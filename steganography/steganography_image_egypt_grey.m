@@ -135,16 +135,52 @@ CHL1_stego = cell2mat(reshape(BH_stego, cw, ch)');
 im_wavelet = [CLL1, CLH1; CHL1_stego, CHH1];
 im_stego = uint8(idwt2(CLL1, CLH1, CHL1_stego, CHH1, mode));
 
-subplot(1,2,1);
-imshow(im_wavelet, [0 255]);
-subplot(1,2,2);
-imshow(im_stego, [0 255]);
-
 imwrite(im_stego, output_image_filename, 'Quality', output_quality);
 
 % Decode
 % ======
 
-%{
+% Need key1, key2 & im_stego (K1, K2 & G)
 
+%{
+(1) Perform 1 level 2D-IDWT on G to obtain 4 subimages:
+    (GLL1, GLH1, GHL1, GHH1)
+(2) Extract block BCk1 from GLL1 using K1
+    Extract block EBi from GHL1 using K2
+    Obtain BSi with:
+        BSi = BCk1 - EBi
+(3) Repeat (2) until all secret blocks are extracted and form subimage SLL1
+(4) Set SHL1, SLH1 and SHH1 to zeros. Apply 2D-IDWT to obtain secret image
 %}
+
+% Load G
+im_stego = imread(output_image_filename);
+
+% Perform 2D-IDWT on G
+[GLL1 GLH1 GHL1 GHH1] = dwt2(im_stego, mode);
+
+BGLL1 = reshape(mat2cell(GLL1, ones(1, cw) * 4, ones(1, ch) * 4)', 1, nc);
+BGHL1 = reshape(mat2cell(GHL1, ones(1, cw) * 4, ones(1, ch) * 4)', 1, nc);
+
+for i = 1:ns
+    BC{i} = BGLL1{key1(i)};
+    EB{i} = BGHL1{key2(i)};
+    BS{i} = BC{i} - EB{i};
+end
+
+SLL1 = cell2mat(reshape(BS, cw, ch)');
+SHL1 = zeros(cw * 4, ch * 4);
+SLH1 = zeros(cw * 4, ch * 4);
+SHH1 = zeros(cw * 4, ch * 4);
+
+im_extracted = uint8(idwt2(SLL1, SLH1, SHL1, SHH1, mode));
+
+
+subplot(2,2,1);
+imshow(im_wavelet, [0 255]);
+subplot(2,2,2);
+imshow(im_stego, [0 255]);
+subplot(2,2,3);
+imshow(im_extracted, [0 255]);
+subplot(2,2,4);
+imshow(im_secret, [0 255]);
