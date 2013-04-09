@@ -63,10 +63,6 @@ ch = ch/4;
 sw = sw/4;
 sh = sh/4;
 
-% Best block (key 1)
-best_k1 = 0;
-best_k1_rmse = Inf('double');
-
 % Number of secret and carrier blocks
 ns = sw * sh;
 nc = cw * ch;
@@ -75,11 +71,15 @@ nc = cw * ch;
 BS = reshape(mat2cell(SLL1, ones(1, sw) * 4, ones(1, sh) * 4)', 1, ns);
 BC = reshape(mat2cell(CLL1, ones(1, cw) * 4, ones(1, ch) * 4)', 1, nc);
 BH = reshape(mat2cell(CHL1, ones(1, cw) * 4, ones(1, ch) * 4)', 1, nc);
-key1 = zeros(1, ns);
-key2 = zeros(1, nc);
+
+% Initiate keys at -1, the negative value indicates it is unset
+key1 = zeros(1, ns) - 1;
+key2 = zeros(1, nc) - 1;
 
 for i = 1:ns
     % For each BSi in SLL1, find the best matched block BCk1 in CLL1
+    best_k1 = 0;
+    best_k1_rmse = Inf('double');
     for k1 = 1:nc
         current_rmse = rmse2(BS{i}, BC{k1});
         
@@ -97,22 +97,24 @@ end
 % Calculate error block (EBi = BCk1 - BSi)
 EB = cellfun(@minus, BC, BS, 'Un', 0);
 
-% Best block (key 2)
-best_k2 = 0;
-best_k2_rmse = Inf('double');
-
 % Make a copy of CHL1, which will be modified
 BH_stego = BH;
 
 for i = 1:ns
     % For each EBi, find the best matched block BHk2 in CHL1
+    best_k2 = 0;
+    best_k2_rmse = Inf('double');
     for k2 = 1:nc
         current_rmse = rmse2(EB{i}, BH{k2});
         
         % Compare their RMSE
         if (current_rmse < best_k2_rmse)
-            best_k2_rmse = current_rmse;
-            best_k2 = k2;
+            
+            % Check this block has not been used yet, to ensure uniqueness
+            if ~any(key2 == k2)
+                best_k2_rmse = current_rmse;
+                best_k2 = k2;
+            end
         end
     end
     
@@ -127,12 +129,14 @@ end
 CHL1_stego = cell2mat(reshape(BH_stego, cw, ch)');
 
 im_wavelet = [CLL1, CLH1; CHL1_stego, CHH1];
-im_stego = idwt2(CLL1, CLH1, CHL1_stego, CHH1, mode);
+im_stego = uint8(idwt2(CLL1, CLH1, CHL1_stego, CHH1, mode));
 
 subplot(1,2,1);
 imshow(im_wavelet, [0 255]);
 subplot(1,2,2);
 imshow(im_stego, [0 255]);
+
+imwrite(im_stego, output_image_filename, 'Quality', output_quality);
 
 % Decode
 % ======
