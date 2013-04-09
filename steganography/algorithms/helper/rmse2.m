@@ -3,10 +3,10 @@ function r = rmse2(a, b)
 % INPUTS
 %   a - First set of values
 %   b - Second set of values
-%       a and b must be of the same length
+%       a and b must be of the same size
 % OUTPUTS
 %   r - Root mean squared error
 
-r = sqrt(mean(mean((a - b).^2)));
+r = sqrt(mean2((a - b).^2));
 
 end

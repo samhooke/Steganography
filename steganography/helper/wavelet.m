@@ -1,5 +1,4 @@
-function varargout = wavelet_pascal(WaveletName,Level,X,Ext,Dim)
-% Dredged from: http://read.pudn.com/downloads197/sourcecode/others/928904/wavelet-MATLAB/wavelet.m__.htm
+function varargout = wavelet(WaveletName,Level,X,Ext,Dim)
 %WAVELET  Discrete wavelet transform. 
 %   Y = WAVELET(W,L,X) computes the L-stage discrete wavelet transform 
 %   (DWT) of signal X using wavelet W.  The length of X must be 
