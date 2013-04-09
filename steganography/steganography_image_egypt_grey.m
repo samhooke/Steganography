@@ -65,40 +65,53 @@ im_secret = rgb2gray(imread(secret_image_filename));
 w = w/4;
 h = h/4;
 
-% K1
-%key1_x = zeros(1, w * h);
-%key1_y = zeros(1, w * h);
-%key1_pos = 1;
-key1_x = zeros(w, h);
-key1_y = zeros(w, h);
-
 % Blocks
 bs = zeros(4, 4);
 bc1 = zeros(4, 4);
 
 % Best block
-best_cx = 0;
-best_cy = 0;
+best_k1 = 0;
 best_rmse = Inf('double');
 
 tic
 
-
 % Split SLL1 and CLL1 into a 1D array of 4x4 blocks
 cellw = ones(1, w) * 4;
 cellh = ones(1, h) * 4;
-bs = reshape(mat2cell(sll1, cellw, cellh), 1, w * h);
-bc1 = reshape(mat2cell(cll1, cellw, cellh), 1, w * h);
 
+ns = w * h;
+nc = w * h;
+
+% reshape([1 2 3;4 5 6;7 8 9]', 1, 9) => [1 2 3 4 5 6 7 8 9]
+bs = reshape(mat2cell(sll1, cellw, cellh)', 1, ns);
+bc1 = reshape(mat2cell(cll1, cellw, cellh)', 1, nc);
+key1 = zeros(1, nc);
+
+for i = 1:ns
+    % For each BSi in SLL1, find the best matched block in CLL1
+    for k1 = 1:nc
+        current_rmse = rmse2(bs{i}, bc1{k1});
+        
+        % Compare their RMSE
+        if (current_rmse < best_rmse)
+            best_rmse = current_rmse;
+            best_k1 = k1;
+        end
+    end
+    
+    % Store the best matched block location in K1
+    key1(i) = best_k1;
+end
+
+%{
 bs_bc1_rmse = zeros(w, h);
-for i = 1:w*h
-    for j = 1:w*h
+for j = 1:w*h
+    for i = 1:w*h
         bs_bc1_rmse(i, j) = rmse2(bs{i}, bc1{j});
     end
 end
-
-
-
+bs_bc1_rmse = reshape(bs_bc1_rmse', 1, w * h);
+%}
 toc
 
 %{
