@@ -14,6 +14,8 @@ function [extracted_msg_bin] = steg_fusion_decode(im_stego, im_original, mode)
 hh = hhs - hho;
 [w h] = size(hh);
 
+extracted_msg_bin = zeros(1, w * h);
+
 extracted_msg_pos = 1;
 for x = 1:w
     for y = 1:h

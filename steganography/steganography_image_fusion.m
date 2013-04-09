@@ -17,7 +17,7 @@ secret_msg_str = '';
 channel = 3;
 
 %@@ Output image quality
-output_quality = 100;
+output_quality = 75;
 
 %@@ Alpha value for encoding
 alpha = 0.05;
@@ -28,7 +28,7 @@ mode = 'db1';
 % Load image, generate message if necessary
 im = imread(carrier_image_filename);
 [w h ~] = size(im);
-msg_length_max = w / 16 * h / 16; % One bit per 8x8, in one quarter
+msg_length_max = w / 2 * h / 2; % One bit per pixel, in one quarter
 msg_length_max = msg_length_max / 8; % Convert to bytes
 if isempty(secret_msg_str)
     secret_msg_str = generate_test_message(msg_length_max);
@@ -65,9 +65,9 @@ im_stego = imread(output_image_filename);
 im_original = imread(carrier_image_filename);
 
 imc_stego = im_stego(:,:,channel);
-imb_original = im_original(:,:,channel);
+imc_original = im_original(:,:,channel);
 
-[extracted_msg_bin] = steg_fusion_decode(imc_stego, imb_original, mode);
+[extracted_msg_bin] = steg_fusion_decode(imc_stego, imc_original, mode);
 
 extracted_msg_str = bin2str(extracted_msg_bin);
 
