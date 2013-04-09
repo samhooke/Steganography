@@ -71,6 +71,7 @@ nc = cw * ch;
 BS = reshape(mat2cell(SLL1, ones(1, sw) * 4, ones(1, sh) * 4)', 1, ns);
 BC = reshape(mat2cell(CLL1, ones(1, cw) * 4, ones(1, ch) * 4)', 1, nc);
 BH = reshape(mat2cell(CHL1, ones(1, cw) * 4, ones(1, ch) * 4)', 1, nc);
+EB = BH;
 
 % Initiate keys at -1, the negative value indicates it is unset
 key1 = zeros(1, ns) - 1;
@@ -92,10 +93,13 @@ for i = 1:ns
     
     % Store the best matched block location in K1
     key1(i) = best_k1;
+    
+    % Calculate error block (EBi = BCk1 - BSi)
+    EB{i} = BC{k1} - BS{i};
 end
 
 % Calculate error block (EBi = BCk1 - BSi)
-EB = cellfun(@minus, BC, BS, 'Un', 0);
+%EB = cellfun(@minus, BC, BS, 'Un', 0);
 
 % Make a copy of CHL1, which will be modified
 BH_stego = BH;
