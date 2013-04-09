@@ -8,8 +8,8 @@ tic
 % ======
 
 %@@ Input image and output location
-carrier_image_filename = [dir_input, 'lena_tiny.jpg'];
-secret_image_filename = [dir_input, 'peppers_tiny.jpg'];
+carrier_image_filename = [dir_input, 'lena.jpg'];
+secret_image_filename = [dir_input, 'peppers.jpg'];
 output_image_filename = [dir_output, 'lena_egypt.jpg'];
 
 %@@ Output image quality
@@ -17,10 +17,19 @@ output_quality = 100;
 
 %@@ Wavelet transformation
 mode = 'db1';
+%db# 1, 5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45
+%coif# 3
+%sym# 1, 5...
+%bior#.# 1.1, 1.5, 2.4, 2.8, 4.4, 6.8
+%rbio#.# 1.1, 1.5...
+
 
 %@@ Whether each value in the key must be unique
 unique_k1 = false;
 unique_k2 = false;
+
+%@@ Block size
+block_size = 4;
 
 %{
 C = im_carrier
@@ -64,19 +73,19 @@ im_secret = rgb2gray(imread(secret_image_filename));
 [SLL1 SLH1 SHL1 SHH1] = dwt2(im_secret, mode);
 [cw ch] = size(CLL1);
 [sw sh] = size(SLL1);
-cw = cw/4;
-ch = ch/4;
-sw = sw/4;
-sh = sh/4;
+cw = (cw/block_size);
+ch = (ch/block_size);
+sw = (sw/block_size);
+sh = (sh/block_size);
 
 % Number of secret and carrier blocks
 ns = sw * sh;
 nc = cw * ch;
 
 % Split into a 2D array of 4x4 cells, then arrange them into a 1D array
-BS = reshape(mat2cell(SLL1, ones(1, sw) * 4, ones(1, sh) * 4)', 1, ns);
-BC = reshape(mat2cell(CLL1, ones(1, cw) * 4, ones(1, ch) * 4)', 1, nc);
-BH = reshape(mat2cell(CHL1, ones(1, cw) * 4, ones(1, ch) * 4)', 1, nc);
+BS = reshape(mat2cell(SLL1, ones(1, sw) * block_size, ones(1, sh) * block_size)', 1, ns);
+BC = reshape(mat2cell(CLL1, ones(1, cw) * block_size, ones(1, ch) * block_size)', 1, nc);
+BH = reshape(mat2cell(CHL1, ones(1, cw) * block_size, ones(1, ch) * block_size)', 1, nc);
 EB = BH;
 
 % Initiate keys at -1, the negative value indicates it is unset
@@ -171,8 +180,8 @@ im_stego = imread(output_image_filename);
 % Perform 2D-IDWT on G
 [GLL1 GLH1 GHL1 GHH1] = dwt2(im_stego, mode);
 
-BGLL1 = reshape(mat2cell(GLL1, ones(1, cw) * 4, ones(1, ch) * 4)', 1, nc);
-BGHL1 = reshape(mat2cell(GHL1, ones(1, cw) * 4, ones(1, ch) * 4)', 1, nc);
+BGLL1 = reshape(mat2cell(GLL1, ones(1, cw) * block_size, ones(1, ch) * block_size)', 1, nc);
+BGHL1 = reshape(mat2cell(GHL1, ones(1, cw) * block_size, ones(1, ch) * block_size)', 1, nc);
 
 for i = 1:ns
     BC{i} = BGLL1{key1(i)};
@@ -181,9 +190,9 @@ for i = 1:ns
 end
 
 SLL1 = cell2mat(reshape(BS, cw, ch)');
-SHL1 = zeros(cw * 4, ch * 4);
-SLH1 = zeros(cw * 4, ch * 4);
-SHH1 = zeros(cw * 4, ch * 4);
+SHL1 = zeros(cw * block_size, ch * block_size);
+SLH1 = zeros(cw * block_size, ch * block_size);
+SHH1 = zeros(cw * block_size, ch * block_size);
 
 im_extracted = uint8(idwt2(SLL1, SLH1, SHL1, SHH1, mode));
 
