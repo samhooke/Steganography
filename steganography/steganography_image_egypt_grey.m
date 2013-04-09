@@ -2,6 +2,8 @@ clc;
 clear variables;
 [dir_input, dir_output] = steganography_init();
 
+tic
+
 % Encode
 % ======
 
@@ -15,6 +17,10 @@ output_quality = 100;
 
 %@@ Wavelet transformation
 mode = 'db1';
+
+%@@ Whether each value in the key must be unique
+unique_k1 = false;
+unique_k2 = false;
 
 %{
 C = im_carrier
@@ -86,8 +92,13 @@ for i = 1:ns
         
         % Compare their RMSE
         if (current_rmse < best_k1_rmse)
-            best_k1_rmse = current_rmse;
-            best_k1 = k1;
+            
+            % Check this block has not been used yet, to ensure uniqueness
+            %if ~unique_k1 || (unique_k1 && ~any(key1 == k2))
+            if ~unique_k1 || ~any(key1 == k1)
+                best_k1_rmse = current_rmse;
+                best_k1 = k1;
+            end
         end
     end
     
@@ -115,7 +126,8 @@ for i = 1:ns
         if (current_rmse < best_k2_rmse)
             
             % Check this block has not been used yet, to ensure uniqueness
-            if ~any(key2 == k2)
+            %if ~unique_k2 || (unique_k2 && ~any(key2 == k2))
+            if ~unique_k2 || ~any(key2 == k2)
                 best_k2_rmse = current_rmse;
                 best_k2 = k2;
             end
@@ -175,12 +187,17 @@ SHH1 = zeros(cw * 4, ch * 4);
 
 im_extracted = uint8(idwt2(SLL1, SLH1, SHL1, SHH1, mode));
 
+toc
 
 subplot(2,2,1);
 imshow(im_wavelet, [0 255]);
+title('Stego image (wavelet transformed)');
 subplot(2,2,2);
 imshow(im_stego, [0 255]);
+title('Stego image');
 subplot(2,2,3);
-imshow(im_extracted, [0 255]);
-subplot(2,2,4);
 imshow(im_secret, [0 255]);
+title('Secret image - before');
+subplot(2,2,4);
+imshow(im_extracted, [0 255]);
+title('Secret image - after');
