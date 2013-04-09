@@ -10,4 +10,3 @@ function r = rmse(a, b)
 r = sqrt(mean((a - b).^2));
 
 end
-

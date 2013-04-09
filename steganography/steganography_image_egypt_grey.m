@@ -50,14 +50,53 @@ G = im_stego
 %}
 
 % Load images as greyscale, for simplicity in this first implementation
-im_carrier = rgb2grayscale(imread(carrier_image_filename));
-im_secret = rgb2grayscale(imread(secret_image_filename));
+im_carrier = rgb2gray(imread(carrier_image_filename));
+im_secret = rgb2gray(imread(secret_image_filename));
 
 % Calculate the 4 subimages for C and S
 [cll1 clh1 chl1 chh1] = dwt2(im_carrier, mode);
 [sll1 slh1 shl1 shh1] = dwt2(im_secret, mode);
 
 % SLL1, CLL1 and SHL1
+
+% For each 4x4 block in SLL1, find the best matched block in CLL1
+[w h] = size(cll1);
+
+key1_x = zeros(1, w/4 * h/4);
+key1_y = zeros(1, w/4 * h/4);
+key1_pos = 1;
+
+for sy = 0:h/4-1
+    for sx = 0:w/4-1
+        % For each BSi in SLL1...
+        bs = sll1(sx*4+1:(sx+1)*4, sy*4+1:(sy+1)*4);
+
+        % ...find the best matched block BCk1 in CLL1
+        best_cx = 0;
+        best_cy = 0;
+        best_rmse = Inf('double');
+        
+        for cy = 0:h/4-1
+            for cx = 0:w/4-1
+                bc1 = cll1(cx*4+1:(cx+1)*4, cy*4+1:(cy+1)*4);
+                
+                current_rmse = rmse(bs, bc1);
+                
+                % Compare their RMSE
+                if (current_rmse < best_rmse)
+                    best_rmse = current_rmse;
+                    best_cx = cx;
+                    best_cy = cy;
+                end
+            end
+        end
+        
+        % We now know which has the lowest RMSE match
+        key1_x(key1_pos) = best_cx;
+        key1_y(key1_pos) = best_cy;
+        key1_pos = key1_pos + 1;
+    end
+end
 
 %im_wavelet = [cll1, clh1; chl1, chh1];
 %im_stego = idwt2(cll1, clh1, chl1, chh1, mode);
