@@ -54,47 +54,38 @@ im_carrier = rgb2gray(imread(carrier_image_filename));
 im_secret = rgb2gray(imread(secret_image_filename));
 
 % Calculate the 4 subimages for C and S
-[cll1 clh1 chl1 chh1] = dwt2(im_carrier, mode);
-[sll1 slh1 shl1 shh1] = dwt2(im_secret, mode);
+[CLL1 CLH1 CHL1 CHH1] = dwt2(im_carrier, mode);
+[SLL1 SLH1 SHL1 SHH1] = dwt2(im_secret, mode);
+[cw ch] = size(CLL1);
+[sw sh] = size(SLL1);
+cw = cw/4;
+ch = ch/4;
+sw = sw/4;
+sh = sh/4;
 
-% SLL1, CLL1 and SHL1
-
-% For each 4x4 block in SLL1, find the best matched block in CLL1
-[w h] = size(cll1);
-
-w = w/4;
-h = h/4;
-
-% Blocks
-bs = zeros(4, 4);
-bc1 = zeros(4, 4);
-
-% Best block
+% Best block (key 1)
 best_k1 = 0;
-best_rmse = Inf('double');
+best_k1_rmse = Inf('double');
 
-tic
+% Number of secret and carrier blocks
+ns = sw * sh;
+nc = cw * ch;
 
-% Split SLL1 and CLL1 into a 1D array of 4x4 blocks
-cellw = ones(1, w) * 4;
-cellh = ones(1, h) * 4;
-
-ns = w * h;
-nc = w * h;
-
-% reshape([1 2 3;4 5 6;7 8 9]', 1, 9) => [1 2 3 4 5 6 7 8 9]
-bs = reshape(mat2cell(sll1, cellw, cellh)', 1, ns);
-bc1 = reshape(mat2cell(cll1, cellw, cellh)', 1, nc);
-key1 = zeros(1, nc);
+% Split into a 2D array of 4x4 cells, then arrange them into a 1D array
+BS = reshape(mat2cell(SLL1, ones(1, sw) * 4, ones(1, sh) * 4)', 1, ns);
+BC = reshape(mat2cell(CLL1, ones(1, cw) * 4, ones(1, ch) * 4)', 1, nc);
+BH = reshape(mat2cell(CHL1, ones(1, cw) * 4, ones(1, ch) * 4)', 1, nc);
+key1 = zeros(1, ns);
+key2 = zeros(1, nc);
 
 for i = 1:ns
-    % For each BSi in SLL1, find the best matched block in CLL1
+    % For each BSi in SLL1, find the best matched block BCk1 in CLL1
     for k1 = 1:nc
-        current_rmse = rmse2(bs{i}, bc1{k1});
+        current_rmse = rmse2(BS{i}, BC{k1});
         
         % Compare their RMSE
-        if (current_rmse < best_rmse)
-            best_rmse = current_rmse;
+        if (current_rmse < best_k1_rmse)
+            best_k1_rmse = current_rmse;
             best_k1 = k1;
         end
     end
@@ -103,50 +94,45 @@ for i = 1:ns
     key1(i) = best_k1;
 end
 
-%{
-bs_bc1_rmse = zeros(w, h);
-for j = 1:w*h
-    for i = 1:w*h
-        bs_bc1_rmse(i, j) = rmse2(bs{i}, bc1{j});
-    end
-end
-bs_bc1_rmse = reshape(bs_bc1_rmse', 1, w * h);
-%}
-toc
+% Calculate error block (EBi = BCk1 - BSi)
+EB = cellfun(@minus, BC, BS, 'Un', 0);
 
-%{
-tic
-for sy = 0:h-1;
-    for sx = 0:w-1;
-        % For each BSi in SLL1...
-        bs = sll1(sx*4+1:(sx+1)*4, sy*4+1:(sy+1)*4);
+% Best block (key 2)
+best_k2 = 0;
+best_k2_rmse = Inf('double');
 
-        % ...find the best matched block BCk1 in CLL1
-        for cy = 0:h-1;
-            for cx = 0:w-1;
-                bc1 = cll1(cx*4+1:(cx+1)*4, cy*4+1:(cy+1)*4);
-                
-                current_rmse = rmse(bs, bc1);
-                
-                % Compare their RMSE
-                if (current_rmse < best_rmse)
-                    best_rmse = current_rmse;
-                    best_cx = cx;
-                    best_cy = cy;
-                end
-            end
-        end
+% Make a copy of CHL1, which will be modified
+BH_stego = BH;
+
+for i = 1:ns
+    % For each EBi, find the best matched block BHk2 in CHL1
+    for k2 = 1:nc
+        current_rmse = rmse2(EB{i}, BH{k2});
         
-        % We now know which has the lowest RMSE match
-        key1_x(sx + 1, sy + 1) = best_cx;
-        key1_y(sx + 1, sy + 1) = best_cy;
+        % Compare their RMSE
+        if (current_rmse < best_k2_rmse)
+            best_k2_rmse = current_rmse;
+            best_k2 = k2;
+        end
     end
+    
+    % Store the best matched block location in K1
+    key2(i) = best_k2;
+    
+    % Also, replace the block
+    BH_stego{best_k2} = EB{i};
 end
-toc
-%}
 
-%im_wavelet = [cll1, clh1; chl1, chh1];
-%im_stego = idwt2(cll1, clh1, chl1, chh1, mode);
+% Form CHL1 with the stego stuff
+CHL1_stego = cell2mat(reshape(BH_stego, cw, ch)');
+
+im_wavelet = [CLL1, CLH1; CHL1_stego, CHH1];
+im_stego = idwt2(CLL1, CLH1, CHL1_stego, CHH1, mode);
+
+subplot(1,2,1);
+imshow(im_wavelet, [0 255]);
+subplot(1,2,2);
+imshow(im_stego, [0 255]);
 
 % Decode
 % ======

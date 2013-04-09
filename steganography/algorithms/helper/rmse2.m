@@ -7,6 +7,6 @@ function r = rmse2(a, b)
 % OUTPUTS
 %   r - Root mean squared error
 
-r = mean(mean((a - b).^2));
+r = sqrt(mean(mean((a - b).^2)));
 
 end
