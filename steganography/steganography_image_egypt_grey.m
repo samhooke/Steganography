@@ -6,8 +6,8 @@ clear variables;
 % ======
 
 %@@ Input image and output location
-carrier_image_filename = [dir_input, 'lena.jpg'];
-secret_image_filename = [dir_input, 'peppers.jpg'];
+carrier_image_filename = [dir_input, 'lena_tiny.jpg'];
+secret_image_filename = [dir_input, 'peppers_tiny.jpg'];
 output_image_filename = [dir_output, 'lena_egypt.jpg'];
 
 %@@ Output image quality
@@ -62,22 +62,55 @@ im_secret = rgb2gray(imread(secret_image_filename));
 % For each 4x4 block in SLL1, find the best matched block in CLL1
 [w h] = size(cll1);
 
-key1_x = zeros(1, w/4 * h/4);
-key1_y = zeros(1, w/4 * h/4);
-key1_pos = 1;
+w = w/4;
+h = h/4;
 
-for sy = 0:h/4-1
-    for sx = 0:w/4-1
+% K1
+%key1_x = zeros(1, w * h);
+%key1_y = zeros(1, w * h);
+%key1_pos = 1;
+key1_x = zeros(w, h);
+key1_y = zeros(w, h);
+
+% Blocks
+bs = zeros(4, 4);
+bc1 = zeros(4, 4);
+
+% Best block
+best_cx = 0;
+best_cy = 0;
+best_rmse = Inf('double');
+
+tic
+
+
+% Split SLL1 and CLL1 into a 1D array of 4x4 blocks
+cellw = ones(1, w) * 4;
+cellh = ones(1, h) * 4;
+bs = reshape(mat2cell(sll1, cellw, cellh), 1, w * h);
+bc1 = reshape(mat2cell(cll1, cellw, cellh), 1, w * h);
+
+bs_bc1_rmse = zeros(w, h);
+for i = 1:w*h
+    for j = 1:w*h
+        bs_bc1_rmse(i, j) = rmse2(bs{i}, bc1{j});
+    end
+end
+
+
+
+toc
+
+%{
+tic
+for sy = 0:h-1;
+    for sx = 0:w-1;
         % For each BSi in SLL1...
         bs = sll1(sx*4+1:(sx+1)*4, sy*4+1:(sy+1)*4);
 
         % ...find the best matched block BCk1 in CLL1
-        best_cx = 0;
-        best_cy = 0;
-        best_rmse = Inf('double');
-        
-        for cy = 0:h/4-1
-            for cx = 0:w/4-1
+        for cy = 0:h-1;
+            for cx = 0:w-1;
                 bc1 = cll1(cx*4+1:(cx+1)*4, cy*4+1:(cy+1)*4);
                 
                 current_rmse = rmse(bs, bc1);
@@ -92,11 +125,12 @@ for sy = 0:h/4-1
         end
         
         % We now know which has the lowest RMSE match
-        key1_x(key1_pos) = best_cx;
-        key1_y(key1_pos) = best_cy;
-        key1_pos = key1_pos + 1;
+        key1_x(sx + 1, sy + 1) = best_cx;
+        key1_y(sx + 1, sy + 1) = best_cy;
     end
 end
+toc
+%}
 
 %im_wavelet = [cll1, clh1; chl1, chh1];
 %im_stego = idwt2(cll1, clh1, chl1, chh1, mode);
