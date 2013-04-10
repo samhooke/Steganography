@@ -57,20 +57,15 @@ clear variables;
 % ======
 
 %@@ Input image and output location
-carrier_image_filename = [dir_input, 'lena_small.jpg'];
-secret_image_filename = [dir_input, 'peppers_tiny.jpg'];
+carrier_image_filename = [dir_input, 'lena.jpg'];
+secret_image_filename = [dir_input, 'peppers_small.jpg'];
 output_image_filename = [dir_output, 'lena_egypt.jpg'];
 
 %@@ Output image quality
 output_quality = 75;
 
 %@@ Wavelet transformation
-%db# 1, 5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45
-%coif# 3
-%sym# 1, 5...
-%bior#.# 1.1, 1.5, 2.4, 2.8, 4.4, 6.8
-%rbio#.# 1.1, 1.5...
-mode = 'haar'; %spline 4.0
+mode = 'idk';
 
 %@@ Whether each value in the key must be unique
 %@@ [Default: false, false]
