@@ -107,6 +107,8 @@ nc = cw * ch;
 BS = reshape(mat2cell(SLL1, ones(1, sw) * block_size, ones(1, sh) * block_size)', 1, ns);
 BC = reshape(mat2cell(CLL1, ones(1, cw) * block_size, ones(1, ch) * block_size)', 1, nc);
 BH = reshape(mat2cell(CHL1, ones(1, cw) * block_size, ones(1, ch) * block_size)', 1, nc);
+
+% Create blank array of cells, which will store the error blocks
 EB = reshape(mat2cell(zeros(sw * block_size, sh * block_size), ones(1, sw) * block_size, ones(1, sh) * block_size)', 1, ns);
 
 % Initiate keys at -1, the negative value indicates it is unset
@@ -135,8 +137,7 @@ for i = 1:ns
     key1(i) = best_k1;
     
     % Calculate error block (EBi = BCk1 - BSi)
-    EB{i} = BC{k1} - BS{i};
-    %EB{i} = BS{i} - BC{k1};
+    EB{i} = BC{key1(i)} - BS{i};
 end
 
 if ~overwrite_BH
