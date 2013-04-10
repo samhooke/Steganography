@@ -57,8 +57,8 @@ clear variables;
 % ======
 
 %@@ Input image and output location
-carrier_image_filename = [dir_input, 'lena_tiny.jpg'];
-secret_image_filename = [dir_input, 'peppers_tiny.jpg'];
+carrier_image_filename = [dir_input, 'lena_small.jpg'];
+secret_image_filename = [dir_input, 'peppers_small.jpg'];
 output_image_filename = [dir_output, 'lena_egypt.jpg'];
 
 %@@ Output image quality
@@ -70,7 +70,7 @@ output_quality = 75;
 %sym# 1, 5...
 %bior#.# 1.1, 1.5, 2.4, 2.8, 4.4, 6.8
 %rbio#.# 1.1, 1.5...
-mode = 'db1';
+mode = 'haar'; %spline 4.0
 
 %@@ Whether each value in the key must be unique
 %@@ [Default: false, false]
@@ -90,8 +90,8 @@ im_carrier = rgb2gray(imread(carrier_image_filename));
 im_secret = rgb2gray(imread(secret_image_filename));
 
 % Calculate the 4 subimages for C and S
-[CLL1 CLH1 CHL1 CHH1] = dwt2(im_carrier, mode);
-[SLL1 SLH1 SHL1 SHH1] = dwt2(im_secret, mode);
+[CLL1 CLH1 CHL1 CHH1] = dwt2_pascal(im_carrier, mode);
+[SLL1 SLH1 SHL1 SHH1] = dwt2_pascal(im_secret, mode);
 [cw ch] = size(CLL1);
 [sw sh] = size(SLL1);
 cw = (cw/block_size);
@@ -123,8 +123,7 @@ for i = 1:ns
         % Compare their RMSE
         if (current_rmse < best_k1_rmse)
             
-            % Check this block has not been used yet, to ensure uniqueness
-            %if ~unique_k1 || (unique_k1 && ~any(key1 == k2))
+            % Ensure uniqueness, if required
             if ~unique_k1 || ~any(key1 == k1)
                 best_k1_rmse = current_rmse;
                 best_k1 = k1;
@@ -137,10 +136,11 @@ for i = 1:ns
     
     % Calculate error block (EBi = BCk1 - BSi)
     EB{i} = BC{k1} - BS{i};
+    %EB{i} = BS{i} - BC{k1};
 end
 
-% Make a copy of CHL1, which will be modified
 if ~overwrite_BH
+    % Make a copy of CHL1, which will be modified
     BH_stego = BH;
 end
 
@@ -149,13 +149,16 @@ for i = 1:ns
     best_k2 = 0;
     best_k2_rmse = Inf('double');
     for k2 = 1:nc
-        current_rmse = rmse2(EB{i}, BH{k2});
+        if overwrite_BH
+            current_rmse = rmse2(EB{i}, BH{k2});
+        else
+            current_rmse = rmse2(EB{i}, BH_stego{k2});
+        end
         
         % Compare their RMSE
         if (current_rmse < best_k2_rmse)
             
-            % Check this block has not been used yet, to ensure uniqueness
-            %if ~unique_k2 || (unique_k2 && ~any(key2 == k2))
+            % Ensure uniqueness, if required
             if ~unique_k2 || ~any(key2 == k2)
                 best_k2_rmse = current_rmse;
                 best_k2 = k2;
@@ -182,9 +185,10 @@ else
 end
 
 im_wavelet = [CLL1, CLH1; CHL1_stego, CHH1];
-im_stego = uint8(idwt2(CLL1, CLH1, CHL1_stego, CHH1, mode));
+im_stego = idwt2_pascal(CLL1, CLH1, CHL1_stego, CHH1, mode);
+%im_stego = idwt2_pascal(CLL1, CLH1, CHL1, CHH1, mode);
 
-imwrite(im_stego, output_image_filename, 'Quality', output_quality);
+imwrite(uint8(im_stego), output_image_filename, 'Quality', output_quality);
 
 % Decode
 % ======
@@ -192,10 +196,10 @@ imwrite(im_stego, output_image_filename, 'Quality', output_quality);
 % Need key1, key2 & im_stego (K1, K2 & G)
 
 % Load G
-im_stego = imread(output_image_filename);
+im_stego = double(imread(output_image_filename));
 
 % Perform 2D-IDWT on G
-[GLL1 GLH1 GHL1 GHH1] = dwt2(im_stego, mode);
+[GLL1 GLH1 GHL1 GHH1] = dwt2_pascal(im_stego, mode);
 
 BGLL1 = reshape(mat2cell(GLL1, ones(1, cw) * block_size, ones(1, ch) * block_size)', 1, nc);
 BGHL1 = reshape(mat2cell(GHL1, ones(1, cw) * block_size, ones(1, ch) * block_size)', 1, nc);
@@ -204,6 +208,7 @@ for i = 1:ns
     BC{i} = BGLL1{key1(i)};
     EB{i} = BGHL1{key2(i)};
     BS{i} = BC{i} - EB{i};
+    %BS{i} = EB{i} + BC{i};
 end
 
 SLL1 = cell2mat(reshape(BS, cw, ch)');
@@ -211,7 +216,7 @@ SHL1 = zeros(cw * block_size, ch * block_size);
 SLH1 = zeros(cw * block_size, ch * block_size);
 SHH1 = zeros(cw * block_size, ch * block_size);
 
-im_extracted = uint8(idwt2(SLL1, SLH1, SHL1, SHH1, mode));
+im_extracted = uint8(idwt2_pascal(SLL1, SLH1, SHL1, SHH1, mode));
 
 subplot(2,2,1);
 imshow(im_wavelet, [0 255]);
