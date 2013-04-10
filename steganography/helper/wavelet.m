@@ -667,6 +667,7 @@ case 'lc13/7-c'
    ScaleD = -1/sqrt(2); 
    Family = 'Low complexity'; 
 case  'idk'
+    % Added for Egypt algorithm
    Seq = {1,0;-0.5,0};
    ScaleS = 1;
    ScaleD = 50;

@@ -1,9 +1,9 @@
 function [im_stego, key1, key2, im_wavelet_stego, im_wavelet_secret] = steg_egypt_encode(im_carrier, im_secret, mode, block_size)
-% steg_egypt_encode() Perform Egypt steganography algorithm
+% steg_egypt_encode() Perform Egypt steganography encoding algorithm
 % INPUTS
 %    im_carrier - Carrier image
 %    im_secret  - Secret image (same size or smaller than carrier)
-%    mode       - Wavelet mode to use
+%    mode       - Wavelet mode [Default: 'idk']
 %    block_size - Size of blocks to split subimages into [Default: 4]
 % OUTPUTS
 %    im_stego          - Stego image
@@ -11,6 +11,42 @@ function [im_stego, key1, key2, im_wavelet_stego, im_wavelet_secret] = steg_egyp
 %    key2              - K2, required for decoding
 %    im_wavelet_stego  - DWT of stego image
 %    im_wavelet_secret - DWT of secret image
+
+%{
+Encoding algorithm
+==================
+
+C = im_carrier
+S = im_secret
+G = im_stego
+(1) Perform 2D-DWT on C and S to obtain 4 subimages for each:
+    (CLL1, CLH1, CHL1, CHH1) and (SLL1, SLH1, SHL1, SHH1)
+
+(2) Take SLL1, CLL1 and SHL1. Part them into blocks of 4x4 pixels such that:
+        SLL1 = {BSi ; 1 <= i  < ns}
+        CLL1 = {BCk1; 1 <= k1 < nc}
+        CHL1 = {BHk2; 1 <= k2 < nc}
+    BSi is ith block in SLL1
+    BCk1 is k1th block in CLL1
+    BHk2 is k2th block in CHL1
+    ns is number of 4x4 blocks in SLL1
+    nc is number of 4x4 blocks in CLL1 or CHL1 (they are the same size)
+
+(3) For each block BSi in SLL1, find the best matched block BCk1 of minimum
+    error in CLL1. Search using root mean squared error (RMSE).
+    Key K1 consists of addresses k1 of the best matched blocks in CLL1.
+
+(4)  Calculate the error block, EBi, between BCk1 and BSi as follows:
+        EBi = BCk1 - BSi
+
+(5) For each error block EBi, find the best matched block BHk2 of minimum
+    error in CHL1. Search using root mean squared error (RMSE).
+    Key K2 consists of addresses k2 of the best matched blocks in CHL1.
+
+(6) Repeat (3) to (5) until all error blocks are embedded in CHL1.
+
+(7) Apply 2D-IDWT to (CLL1, CLH1, CHH1, CHL1) to obtain G.
+%}
 
 %@@ Whether each value in the key must be unique
 %@@ [Default: false, false]
@@ -125,4 +161,3 @@ im_wavelet_secret = [SLL1, SHL1; SLH1, SHH1];
 im_stego = idwt2_pascal(CLL1, CLH1, CHL1_stego, CHH1, mode);
 
 end
-

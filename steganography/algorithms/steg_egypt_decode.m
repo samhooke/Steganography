@@ -1,6 +1,30 @@
 function [im_extracted, im_errors] = steg_egypt_decode(im_stego, im_secret_width, im_secret_height, key1, key2, mode, block_size)
-%UNTITLED8 Summary of this function goes here
-%   Detailed explanation goes here
+% steg_egypt_decode() Perform Egypt steganography decoding algorithm
+% INPUTS
+%    im_stego         - Stego image to extract secret image from
+%    im_secret_width  - Width of expected secret image
+%    im_secret_height - Height of expected secret image
+%    key1             - Key1, which was generated during encoding
+%    key2             - Key2, which was generated during encoding
+%    mode             - Wavelet mode [Default: 'idk']
+%    block_size       - Size of blocks used during encoding [Default: 4]
+% OUTPUTS
+%    im_extracted - The extracted secret image
+%    im_errors    - For debugging, an image of the error blocks
+
+%{
+Decoding algorithm
+==================
+
+(1) Perform 1 level 2D-IDWT on G to obtain 4 subimages:
+    (GLL1, GLH1, GHL1, GHH1)
+(2) Extract block BCk1 from GLL1 using K1
+    Extract block EBi from GHL1 using K2
+    Obtain BSi with:
+        BSi = BCk1 - EBi
+(3) Repeat (2) until all secret blocks are extracted and form subimage SLL1
+(4) Set SHL1, SLH1 and SHH1 to zeros. Apply 2D-IDWT to obtain secret image
+%}
 
 % Perform 2D-DWT on G
 [GLL1 GLH1 GHL1 GHH1] = dwt2_pascal(im_stego, mode);
