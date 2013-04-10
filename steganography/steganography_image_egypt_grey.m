@@ -1,3 +1,6 @@
+profile on;
+profile clear;
+tic;
 %{
 
 Encode
@@ -115,7 +118,7 @@ for i = 1:ns
     best_k1 = 0;
     best_k1_rmse = Inf('double');
     for k1 = 1:nc
-        current_rmse = rmse2(BS{i}, BC{k1});
+        current_rmse = rmse2_lazy(BS{i}, BC{k1});
         
         % Compare their RMSE
         if (current_rmse < best_k1_rmse)
@@ -146,9 +149,9 @@ for i = 1:ns
     best_k2_rmse = Inf('double');
     for k2 = 1:nc
         if overwrite_BH
-            current_rmse = rmse2(EB{i}, BH{k2});
+            current_rmse = rmse2_lazy(EB{i}, BH{k2});
         else
-            current_rmse = rmse2(EB{i}, BH_stego{k2});
+            current_rmse = rmse2_lazy(EB{i}, BH_stego{k2});
         end
         
         % Compare their RMSE
@@ -220,6 +223,8 @@ im_errors = cell2mat(reshape(EB, sw, sh)');
 
 im_extracted = double(idwt2_pascal(SLL1, SLH1, SHL1, SHH1, mode));
 
+toc
+
 wmin = min(min(min(min(im_wavelet_s)), min(min(im_wavelet))), min(min(im_errors)));
 wmax = max(max(max(max(im_wavelet_s)), max(max(im_wavelet))), max(max(im_errors)));
 
@@ -243,3 +248,5 @@ title('Secret image - before');
 subplot(2,3,6);
 imshow(im_extracted, [0 255]);
 title('Secret image - after');
+
+profile report;
