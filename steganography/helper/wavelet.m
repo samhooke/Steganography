@@ -574,7 +574,7 @@ case {'spline4.0','rspline4.0'}
    Seq = {-[1,1]/4,0;-[1,1],1}; 
    ScaleS = 4/sqrt(2); 
    ScaleD = 1/sqrt(2); 
-   ScaleS = 1; ScaleD = 1; 
+   %ScaleS = 1; ScaleD = 1; 
 case {'spline4.1','rspline4.1'} 
    Seq = {-[1,1]/4,0;-[1,1],1;6/16,0}; 
    ScaleS = 4/sqrt(2); 
@@ -666,6 +666,12 @@ case 'lc13/7-c'
    ScaleS = sqrt(2); 
    ScaleD = -1/sqrt(2); 
    Family = 'Low complexity'; 
+case  'idk'
+    % Added for Egypt algorithm
+   Seq = {1,0;-0.5,0};
+   ScaleS = 1;
+   ScaleD = 50;
+   Family = 'IDK';
 otherwise 
    Seq = {}; 
    return; 
