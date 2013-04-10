@@ -58,7 +58,7 @@ clear variables;
 
 %@@ Input image and output location
 carrier_image_filename = [dir_input, 'lena_small.jpg'];
-secret_image_filename = [dir_input, 'peppers_small.jpg'];
+secret_image_filename = [dir_input, 'peppers_tiny.jpg'];
 output_image_filename = [dir_output, 'lena_egypt.jpg'];
 
 %@@ Output image quality
@@ -86,8 +86,8 @@ block_size = 4;
 overwrite_BH = false;
 
 % Load images as greyscale, for simplicity in this first implementation
-im_carrier = rgb2gray(imread(carrier_image_filename));
-im_secret = rgb2gray(imread(secret_image_filename));
+im_carrier = double(rgb2gray(imread(carrier_image_filename)));
+im_secret = double(rgb2gray(imread(secret_image_filename)));
 
 % Calculate the 4 subimages for C and S
 [CLL1 CLH1 CHL1 CHH1] = dwt2_pascal(im_carrier, mode);
@@ -107,7 +107,7 @@ nc = cw * ch;
 BS = reshape(mat2cell(SLL1, ones(1, sw) * block_size, ones(1, sh) * block_size)', 1, ns);
 BC = reshape(mat2cell(CLL1, ones(1, cw) * block_size, ones(1, ch) * block_size)', 1, nc);
 BH = reshape(mat2cell(CHL1, ones(1, cw) * block_size, ones(1, ch) * block_size)', 1, nc);
-EB = BH;
+EB = reshape(mat2cell(zeros(sw * block_size, sh * block_size), ones(1, sw) * block_size, ones(1, sh) * block_size)', 1, ns);
 
 % Initiate keys at -1, the negative value indicates it is unset
 key1 = zeros(1, ns) - 1;
@@ -171,9 +171,11 @@ for i = 1:ns
     
     % Also, replace the block
     if overwrite_BH
-        BH{best_k2} = EB{i};
+        %BH{best_k2} = EB{i};
+        BH{best_k2} = BH{best_k2} + EB{i};
     else
-        BH_stego{best_k2} = EB{i};
+        %BH_stego{best_k2} = EB{i};
+        BH_stego{best_k2} = BH{best_k2} + EB{i};
     end
 end
 
@@ -184,7 +186,9 @@ else
     CHL1_stego = cell2mat(reshape(BH_stego, cw, ch)');
 end
 
-im_wavelet = [CLL1, CLH1; CHL1_stego, CHH1];
+im_wavelet = [CLL1, CHL1_stego; CLH1, CHH1];
+im_wavelet_s = [SLL1, SHL1; SLH1, SHH1];
+
 im_stego = idwt2_pascal(CLL1, CLH1, CHL1_stego, CHH1, mode);
 %im_stego = idwt2_pascal(CLL1, CLH1, CHL1, CHH1, mode);
 
@@ -211,22 +215,35 @@ for i = 1:ns
     %BS{i} = EB{i} + BC{i};
 end
 
-SLL1 = cell2mat(reshape(BS, cw, ch)');
-SHL1 = zeros(cw * block_size, ch * block_size);
-SLH1 = zeros(cw * block_size, ch * block_size);
-SHH1 = zeros(cw * block_size, ch * block_size);
+SLL1 = cell2mat(reshape(BS, sw, sh)');
+SHL1 = zeros(sw * block_size, sh * block_size);
+SLH1 = zeros(sw * block_size, sh * block_size);
+SHH1 = zeros(sw * block_size, sh * block_size);
 
-im_extracted = uint8(idwt2_pascal(SLL1, SLH1, SHL1, SHH1, mode));
+im_errors = cell2mat(reshape(EB, sw, sh)');
 
-subplot(2,2,1);
-imshow(im_wavelet, [0 255]);
+im_extracted = double(idwt2_pascal(SLL1, SLH1, SHL1, SHH1, mode));
+
+wmin = min(min(min(min(im_wavelet_s)), min(min(im_wavelet))), min(min(im_errors)));
+wmax = max(max(max(max(im_wavelet_s)), max(max(im_wavelet))), max(max(im_errors)));
+
+subplot(2,3,1);
+imshow(im_wavelet_s, [wmin wmax]);
+title('Secret image (wavelet transformed)');
+subplot(2,3,4);
+imshow(im_wavelet, [wmin wmax]);
 title('Stego image (wavelet transformed)');
-subplot(2,2,2);
+
+subplot(2,3,2);
 imshow(im_stego, [0 255]);
 title('Stego image');
-subplot(2,2,3);
+subplot(2,3,5);
+imshow(im_errors, [wmin wmax]);
+title('Error blocks');
+
+subplot(2,3,3);
 imshow(im_secret, [0 255]);
 title('Secret image - before');
-subplot(2,2,4);
+subplot(2,3,6);
 imshow(im_extracted, [0 255]);
 title('Secret image - after');
