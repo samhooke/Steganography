@@ -17,8 +17,8 @@ secret_msg_str = '';
 %@@ the maximum capacity:
 %@@   max capacity (in bits) = (secret_msg_w / pixel_size) * (secret_msg_h / pixel_size)
 %@@   divide by 8 to get it in bytes
-secret_msg_w = 64;
-secret_msg_h = 256;
+secret_msg_w = 32;
+secret_msg_h = 64;
 
 %@@ Output image quality
 output_quality = 75;
@@ -27,24 +27,24 @@ output_quality = 75;
 channel = 3;
 
 %@@ Wavelet transformation
-%@@ [Default: idk]
+%@@ [Default: haar]
 mode = 'haar';
 
 %@@ Block size: Size in pixels of the blocks that the secret is split up
 %@@ into. Smaller values lead to more accuracy and robustness, but slower
 %@@ calculation and larger keys. If set as low as 1, then the image is
 %@@ effectively the key, and the key is the encoded secret data.
-%@@ [Default: 8]
-block_size = 8;
+%@@ 4 is generally the best value, because when put back through IDWT it
+%@@ effectively becomes 8, making the block_size match JPEG encoding.
+%@@ [Default: 4]
+block_size = 4;
 
 %@@ Pixel size: When converting the secret message into binary, and storing
 %@@ it in the form of an image as black and white pixels, this controls how
 %@@ big those pixels are, in pixels. Larger values lead to more robustness,
 %@@ but less capacity.
-%@@ [Default: 4]
-pixel_size = 4;
-
-pixel_amplitude = 255;
+%@@ [Default: 2]
+pixel_size = 2;
 
 % Set to true, because we are encoding secret binary data, not an image
 is_binary = true;
@@ -58,7 +58,7 @@ if isempty(secret_msg_str)
 end;
 secret_msg_bin = str2bin(secret_msg_str);
 
-im_secret = bin2binimg(secret_msg_bin, secret_msg_w / pixel_size, secret_msg_h / pixel_size, pixel_size, pixel_amplitude);
+im_secret = bin2binimg(secret_msg_bin, secret_msg_w / pixel_size, secret_msg_h / pixel_size, pixel_size, 255);
 
 % Perform Egypt encoding on one colour channel
 imc_carrier = im_carrier(:,:,channel);
@@ -78,6 +78,14 @@ im_stego = double(imread(output_image_filename));
 % Perform Egypt decoding
 imc_stego = im_stego(:,:,channel);
 [im_extracted, im_errors] = steg_egypt_decode(imc_stego, secret_msg_w, secret_msg_h, key1, key2, mode, block_size, is_binary);
+
+% Extract the binary data from the extracted image
+extracted_msg_bin = binimg2bin(im_extracted, pixel_size, 127);
+
+% Take the raw extracted image, and make the values either 0 or 255
+im_extracted_bin = im_extracted;
+im_extracted_bin(im_extracted_bin < 127) = 0;
+im_extracted_bin(im_extracted_bin >= 127) = 255;
 
 % Calculate min & max values to ensure wavelet based images use same scale
 wmin = min(min(min(min(im_wavelet_secret)), min(min(im_wavelet_stego))), min(min(im_errors)));
@@ -102,18 +110,7 @@ subplot(2,3,3);
 imshow(im_secret, [0 255]);
 title('Secret image - before');
 subplot(2,3,6);
-
-if ~is_binary
-    imshow(im_extracted, [0 255]);
-else
-    im_extracted_bin = im_extracted;
-    im_extracted_bin(im_extracted_bin < pixel_amplitude / 2) = 0;
-    im_extracted_bin(im_extracted_bin >= pixel_amplitude / 2) = 255;
-    imshow(im_extracted_bin, [0 255]);
-end
-
-extracted_msg_bin = binimg2bin(im_extracted, pixel_size, pixel_amplitude / 2);
-
+imshow(im_extracted_bin, [0 255]);
 title('Secret image - after');
 
 % Print statistics

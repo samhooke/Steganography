@@ -17,7 +17,7 @@ output_quality = 75;
 channel = 3;
 
 %@@ Wavelet transformation
-%@@ [Default: idk]
+%@@ [Default: haar]
 mode = 'haar';
 
 %@@ Block size
@@ -76,13 +76,5 @@ subplot(2,3,3);
 imshow(im_secret, [0 255]);
 title('Secret image - before');
 subplot(2,3,6);
-
-if ~is_binary
-    imshow(im_extracted, [0 255]);
-else
-    im_extracted_bin = im_extracted;
-    im_extracted_bin(im_extracted_bin < 127) = 0;
-    im_extracted_bin(im_extracted_bin >= 127) = 255;
-    imshow(im_extracted_bin, [0 255]);
-end
+imshow(im_extracted, [0 255]);
 title('Secret image - after');
