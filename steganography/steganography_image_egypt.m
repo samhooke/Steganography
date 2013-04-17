@@ -18,7 +18,7 @@ channel = 3;
 
 %@@ Wavelet transformation
 %@@ [Default: idk]
-mode = 'idk';
+mode = 'haar';
 
 %@@ Block size
 %@@ [Default: 4]
