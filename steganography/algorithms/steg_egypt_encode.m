@@ -1,10 +1,12 @@
-function [im_stego, key1, key2, im_wavelet_stego, im_wavelet_secret] = steg_egypt_encode(im_carrier, im_secret, mode, block_size)
+function [im_stego, key1, key2, im_wavelet_stego, im_wavelet_secret] = steg_egypt_encode(im_carrier, im_secret, mode, block_size, is_binary)
 % steg_egypt_encode() Perform Egypt steganography encoding algorithm
 % INPUTS
 %    im_carrier - Carrier image
 %    im_secret  - Secret image (same size or smaller than carrier)
 %    mode       - Wavelet mode [Default: 'idk']
 %    block_size - Size of blocks to split subimages into [Default: 4]
+%    is_binary  - Whether to treat im_secret as binary data. If true, then
+%                 im_secret is not transformed in any way before encoding.
 % OUTPUTS
 %    im_stego          - Stego image
 %    key1              - K1, required for decoding
@@ -59,7 +61,11 @@ overwrite_BH = false;
 
 % Calculate the 4 subimages for C and S
 [CLL1 CLH1 CHL1 CHH1] = dwt2_pascal(im_carrier, mode);
-[SLL1 SLH1 SHL1 SHH1] = dwt2_pascal(im_secret, mode);
+if ~is_binary
+    [SLL1 SLH1 SHL1 SHH1] = dwt2_pascal(im_secret, mode);
+else
+    SLL1 = im_secret;
+end
 [cw ch] = size(CLL1);
 [sw sh] = size(SLL1);
 cw = (cw/block_size);
@@ -81,7 +87,7 @@ EB = reshape(mat2cell(zeros(sw * block_size, sh * block_size), ones(1, sw) * blo
 
 % Initiate keys at -1, the negative value indicates it is unset
 key1 = zeros(1, ns) - 1;
-key2 = zeros(1, nc) - 1;
+key2 = zeros(1, ns) - 1;
 
 for i = 1:ns
     % For each BSi in SLL1, find the best matched block BCk1 in CLL1
@@ -156,7 +162,12 @@ else
 end
 
 im_wavelet_stego = [CLL1, CHL1_stego; CLH1, CHH1];
-im_wavelet_secret = [SLL1, SHL1; SLH1, SHH1];
+
+if ~is_binary
+    im_wavelet_secret = [SLL1, SHL1; SLH1, SHH1];
+else
+    im_wavelet_secret = im_secret;
+end
 
 im_stego = idwt2_pascal(CLL1, CLH1, CHL1_stego, CHH1, mode);
 

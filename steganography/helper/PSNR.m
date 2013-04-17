@@ -9,4 +9,3 @@ function psnr = PSNR(a, b)
 psnr = 20 * log10(255 / (sqrt(mean2((a - b).^2))));
 
 end
-
