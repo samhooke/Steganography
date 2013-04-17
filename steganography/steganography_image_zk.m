@@ -48,7 +48,7 @@ im_stego = im;
 im_stego(:,:,channel) = imc_stego;
 
 % Write to file
-imwrite(im_stego, output_image_filename, 'Quality', output_quality, 'Mode', 'lossless');
+imwrite(im_stego, output_image_filename, 'Quality', output_quality);
 
 % Decode
 % ======

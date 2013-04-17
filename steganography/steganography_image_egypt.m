@@ -17,8 +17,9 @@ secret_msg_str = '';
 %@@ the maximum capacity:
 %@@   max capacity (in bits) = (secret_msg_w / pixel_size) * (secret_msg_h / pixel_size)
 %@@   divide by 8 to get it in bytes
-secret_msg_w = 32;
-secret_msg_h = 64;
+%@@ Must be multiples of both block_size and pixel_size
+secret_msg_w = 36;
+secret_msg_h = 36;
 
 %@@ Output image quality
 output_quality = 75;
@@ -44,7 +45,7 @@ block_size = 4;
 %@@ big those pixels are, in pixels. Larger values lead to more robustness,
 %@@ but less capacity.
 %@@ [Default: 2]
-pixel_size = 2;
+pixel_size = 3;
 
 % Set to true, because we are encoding secret binary data, not an image
 is_binary = true;
