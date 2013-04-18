@@ -22,7 +22,7 @@ secret_msg_w = 36;
 secret_msg_h = 36;
 
 %@@ Output image quality
-output_quality = 75;
+output_quality = 100;
 
 %@@ Whether to force the image to be greyscale.
 %@@ If not greyscale, select which colour channel to use (1=r, 2=g, 3=b)

@@ -19,7 +19,7 @@ use_greyscale = true;
 channel = 3;
 
 %@@ Output image quality
-output_quality = 90;
+output_quality = 100;
 
 %@@ Coefficients
 frequency_coefficients = [4 6; 5 2; 6 5];

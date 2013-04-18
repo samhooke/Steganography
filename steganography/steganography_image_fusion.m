@@ -19,7 +19,7 @@ use_greyscale = true;
 channel = 3;
 
 %@@ Output image quality
-output_quality = 90;
+output_quality = 100;
 
 %@@ Alpha value for encoding
 alpha = 0.05;
