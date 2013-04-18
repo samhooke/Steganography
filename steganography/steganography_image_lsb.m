@@ -7,7 +7,7 @@ clear variables;
 
 %@@ Input image and output location
 carrier_image_filename = [dir_input, 'lena.jpg'];
-output_image_filename = [dir_output, 'lena_lsb.png'];
+output_image_filename = [dir_output, 'lena_lsb.jpg'];
 
 %@@ Message string to encode into carrier image
 %@@ Leave blank to automatically generate a message
@@ -17,6 +17,14 @@ secret_msg_str = '';
 %@@ If not greyscale, select which colour channel to use (1=r, 2=g, 3=b)
 use_greyscale = true;
 channel = 3;
+
+%@@ Output image quality
+if iteration_total == 1
+    output_quality = 100;
+else
+    % If performing a test, try all qualities from 100 to 0
+    output_quality = 100 - (iteration_current - 1);
+end
 
 % Load image, generate message if necessary
 im = uint8(imload(carrier_image_filename, use_greyscale));

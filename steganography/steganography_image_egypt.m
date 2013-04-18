@@ -1,6 +1,25 @@
 clc;
 clear variables;
-[dir_input, dir_output] = steganography_init();
+[dir_input, dir_output, dir_results] = steganography_init();
+
+%@@ Name of folder to store test results in
+test_name = 'Egypt_grey';
+
+%@@ How many test iterations to do
+%@@ To test from 100% to 0% quality, set to 101
+iteration_total = 101;
+
+dir_results = [dir_results, test_name, '\'];
+if iteration_total > 1
+    if exist(dir_results, 'dir')
+        error('Directory "%s" already exists!', dir_results);
+    end
+    mkdir(dir_results);
+end
+iteration_data = zeros(7, iteration_total);
+output_csv_filename = [dir_results, 'results.csv'];
+
+for iteration_current = 1:iteration_total
 
 % Encode
 % ======
@@ -22,7 +41,12 @@ secret_msg_w = 36;
 secret_msg_h = 36;
 
 %@@ Output image quality
-output_quality = 100;
+if iteration_total == 1
+    output_quality = 100;
+else
+    % If performing a test, try all qualities from 100 to 0
+    output_quality = 100 - (iteration_current - 1);
+end
 
 %@@ Whether to force the image to be greyscale.
 %@@ If not greyscale, select which colour channel to use (1=r, 2=g, 3=b)
@@ -53,28 +77,31 @@ pixel_size = 3;
 is_binary = true;
 
 % Load images
-im_carrier = imload(carrier_image_filename, use_greyscale);
+im = imload(carrier_image_filename, use_greyscale);
 
-[im_carrier_w im_carrier_h ~] = size(im_carrier);
+[im_carrier_w im_carrier_h ~] = size(im);
 if isempty(secret_msg_str)
     secret_msg_str = generate_test_message(((secret_msg_w / pixel_size) * (secret_msg_h / pixel_size)) / 8);
 end;
 secret_msg_bin = str2bin(secret_msg_str);
 
-im_secret = bin2binimg(secret_msg_bin, secret_msg_w / pixel_size, secret_msg_h / pixel_size, pixel_size, 255);
-
 if use_greyscale
-    imc_carrier = im_carrier;
+    imc = im;
 else
-    imc_carrier = im_carrier(:,:,channel);
+    imc = im(:,:,channel);
 end
 
-[imc_stego, key1, key2, im_wavelet_stego, im_wavelet_secret] = steg_egypt_encode(imc_carrier, im_secret, mode, block_size, is_binary);
+tic;
+% Convert binary data to image
+im_secret = bin2binimg(secret_msg_bin, secret_msg_w / pixel_size, secret_msg_h / pixel_size, pixel_size, 255);
+
+[imc_stego, key1, key2, im_wavelet_stego, im_wavelet_secret] = steg_egypt_encode(imc, im_secret, mode, block_size, is_binary);
+encode_time = toc;
 
 if use_greyscale
     im_stego = imc_stego;
 else
-    im_stego = im_carrier;
+    im_stego = im;
     im_stego(:,:,channel) = imc_stego;
 end
 
@@ -94,10 +121,12 @@ else
     imc_stego = im_stego(:,:,channel);
 end
 
+tic;
 [im_extracted, im_errors] = steg_egypt_decode(imc_stego, secret_msg_w, secret_msg_h, key1, key2, mode, block_size, is_binary);
 
 % Extract the binary data from the extracted image
 extracted_msg_bin = binimg2bin(im_extracted, pixel_size, 127);
+decode_time = toc;
 
 % Take the raw extracted image, and make the values either 0 or 255
 im_extracted_bin = im_extracted;
@@ -131,4 +160,17 @@ imshow(im_extracted_bin, [0 255]);
 title('Secret image - after');
 
 % Print statistics
-steganography_statistics(im_carrier, im_stego, secret_msg_bin, extracted_msg_bin);
+[length_bytes, msg_similarity_py, msg_similarity, im_psnr] = steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_bin, encode_time, decode_time);
+
+% Log data if running multiple tests
+if iteration_total > 1
+    iteration_data(((iteration_current - 1) * 7) + 1:((iteration_current - 1) * 7) + 1 + 6) = [output_quality, msg_similarity_py * 100, msg_similarity * 100, im_psnr, encode_time, decode_time, length_bytes];
+    imwrite(uint8(im_stego), sprintf('%s%d.jpg', dir_results, output_quality));
+end
+    
+end
+
+% Save data log to file
+if iteration_total > 1
+    test_data_save(output_csv_filename, iteration_data');
+end

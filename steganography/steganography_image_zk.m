@@ -1,6 +1,25 @@
 clc;
 clear variables;
-[dir_input, dir_output] = steganography_init();
+[dir_input, dir_output, dir_results] = steganography_init();
+
+%@@ Name of folder to store test results in
+test_name = 'ZK_grey';
+
+%@@ How many test iterations to do
+%@@ To test from 100% to 0% quality, set to 101
+iteration_total = 101;
+
+dir_results = [dir_results, test_name, '\'];
+if iteration_total > 1
+    if exist(dir_results, 'dir')
+        error('Directory "%s" already exists!', dir_results);
+    end
+    mkdir(dir_results);
+end
+iteration_data = zeros(7, iteration_total);
+output_csv_filename = [dir_results, 'results.csv'];
+
+for iteration_current = 1:iteration_total
 
 % Encode
 % ======
@@ -19,7 +38,12 @@ use_greyscale = true;
 channel = 3;
 
 %@@ Output image quality
-output_quality = 100;
+if iteration_total == 1
+    output_quality = 100;
+else
+    % If performing a test, try all qualities from 100 to 0
+    output_quality = 100 - (iteration_current - 1);
+end
 
 %@@ Coefficients
 frequency_coefficients = [4 6; 5 2; 6 5];
@@ -46,7 +70,10 @@ end
 variance_threshold = 1; % Higher = more blocks used
 minimum_distance_encode = 200; % Higher = more robust; more visible
 minimum_distance_decode = 10;
+
+tic;
 [imc_stego, bits_written, bits_unused, invalid_blocks_encode, debug_invalid_encode] = steg_zk_encode(secret_msg_bin, imc, frequency_coefficients, variance_threshold, minimum_distance_encode);
+encode_time = toc;
 
 if use_greyscale
     im_stego = imc_stego;
@@ -70,7 +97,10 @@ else
 end
 
 % Perform decoding
+tic;
 [extracted_msg_bin, invalid_blocks_decode, debug_invalid_decode] = steg_zk_decode(imc_stego, frequency_coefficients, minimum_distance_decode);
+decode_time = toc;
+
 carrier_diff = (imc - imc_stego) .^ 2;
 
 % Display images
@@ -95,4 +125,17 @@ imshow(~(debug_invalid_encode - debug_invalid_decode));
 title('Invalid diff');
 
 % Print statistics
-steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_bin);
+[length_bytes, msg_similarity_py, msg_similarity, im_psnr] = steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_bin, encode_time, decode_time);
+
+% Log data if running multiple tests
+if iteration_total > 1
+    iteration_data(((iteration_current - 1) * 7) + 1:((iteration_current - 1) * 7) + 1 + 6) = [output_quality, msg_similarity_py * 100, msg_similarity * 100, im_psnr, encode_time, decode_time, length_bytes];
+    imwrite(uint8(im_stego), sprintf('%s%d.jpg', dir_results, output_quality));
+end
+    
+end
+
+% Save data log to file
+if iteration_total > 1
+    test_data_save(output_csv_filename, iteration_data');
+end
