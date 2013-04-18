@@ -41,15 +41,30 @@ if try_correcting_spelling
     corrected_msg_bin = str2bin(corrected_msg_str);
     msg_similarity_corrected = py_string_similarity(bin2binstr(secret_msg_bin), bin2binstr(corrected_msg_bin));
 end
-    
-% Calculate error
-imc_error = (imc - imc_stego) .^ 2;
-imc_error_sum = sum(imc_error);
 
-% Show statistics
-fprintf('Image error: %d\n', sum(imc_error_sum));
+% ---=== Show statistics ===---
 
+% PSNR of input image to output image
+fprintf('PSNR: %f\n', PSNR(imc, imc_stego));
+
+% Percentage similarity of input secret to output secret
+if calculate_message_similarity_py
+    fprintf('Message similarity (Python): ~%2.2f%%\n', msg_similarity_py * 100);
+end
+if calculate_message_similarity
+    fprintf('Message similarity (Matlab): ~%2.2f%%\n', msg_similarity * 100);
+end
+
+% Correction of spelling
+if try_correcting_spelling
+    % TODO: Similarity is biased towards shorter strings
+    % The correct string often comes out shorter because of the processing
+    fprintf('Corrected similarity: ~%2.2f%%\n', msg_similarity_corrected * 100);
+end
+
+% Output message before and after
 if output_message_strings
+    fprintf('Encoded message length: %d bytes\n', length(secret_msg_str));
     fprintf('Encoded message: %s\n', secret_msg_str(1:min(output_message_truncate, length(secret_msg_str))));
     fprintf('Decoded message: %s\n', extracted_msg_str(1:min(output_message_truncate, length(extracted_msg_str))));
 
@@ -58,18 +73,4 @@ if output_message_strings
     end
 end
 
-if calculate_message_similarity_py
-    fprintf('Message similarity (Python): ~%2.2f%%\n', msg_similarity_py * 100);
 end
-if calculate_message_similarity
-    fprintf('Message similarity (Matlab): ~%2.2f%%\n', msg_similarity * 100);
-end
-    
-if try_correcting_spelling
-    % TODO: Similarity is biased towards shorter strings
-    % The correct string often comes out shorter because of the processing
-    fprintf('Corrected similarity: ~%2.2f%%\n', msg_similarity_corrected * 100);
-end
-
-end
-
