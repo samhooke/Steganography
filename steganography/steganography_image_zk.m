@@ -13,7 +13,9 @@ output_image_filename = [dir_output, 'lena_zk.jpg'];
 %@@ Leave blank to automatically generate a message
 secret_msg_str = '';
 
-%@@ Which colour channel to use (1=r, 2=g, 3=b)
+%@@ Whether to force the image to be greyscale.
+%@@ If not greyscale, select which colour channel to use (1=r, 2=g, 3=b)
+use_greyscale = true;
 channel = 3;
 
 %@@ Output image quality
@@ -23,7 +25,7 @@ output_quality = 90;
 frequency_coefficients = [4 6; 5 2; 6 5];
 
 % Load image, generate message if necessary
-im = imread(carrier_image_filename);
+im = imload(carrier_image_filename, use_greyscale);
 [w h ~] = size(im);
 % NOTE: By definition the ZK implementation skips some blocks, so the below
 % calculation for msg_length_max is a best case estimation.
@@ -34,8 +36,11 @@ if isempty(secret_msg_str)
 end;
 secret_msg_bin = str2bin(secret_msg_str);
 
-% Take the chosen colour channel
-imc = im(:,:,channel);
+if use_greyscale
+    imc = im;
+else
+    imc = im(:,:,channel);
+end
 
 % Perform encoding
 variance_threshold = 1; % Higher = more blocks used
@@ -43,18 +48,26 @@ minimum_distance_encode = 200; % Higher = more robust; more visible
 minimum_distance_decode = 10;
 [imc_stego, bits_written, bits_unused, invalid_blocks_encode, debug_invalid_encode] = steg_zk_encode(secret_msg_bin, imc, frequency_coefficients, variance_threshold, minimum_distance_encode);
 
-% Create the stego image, replacing the chosen colour channel
-im_stego = im;
-im_stego(:,:,channel) = imc_stego;
+if use_greyscale
+    im_stego = imc_stego;
+else
+    im_stego = im;
+    im_stego(:,:,channel) = imc_stego;
+end
 
 % Write to file
-imwrite(im_stego, output_image_filename, 'Quality', output_quality);
+imwrite(uint8(im_stego), output_image_filename, 'Quality', output_quality);
 
 % Decode
 % ======
 
-im_stego = imread(output_image_filename);
-imc_stego = im_stego(:,:,channel);
+im_stego = imload(output_image_filename, use_greyscale);
+
+if use_greyscale
+    imc_stego = im_stego;
+else
+    imc_stego = im_stego(:,:,channel);
+end
 
 % Perform decoding
 [extracted_msg_bin, invalid_blocks_decode, debug_invalid_decode] = steg_zk_decode(imc_stego, frequency_coefficients, minimum_distance_decode);
@@ -62,10 +75,10 @@ carrier_diff = (imc - imc_stego) .^ 2;
 
 % Display images
 subplot(2,3,1);
-imshow(im);
+imshow(uint8(im));
 title('Lena (carrier)');
 subplot(2,3,2);
-imshow(im_stego);
+imshow(uint8(im_stego));
 title('Lena (stego)');
 subplot(2,3,3);
 imshow(carrier_diff);

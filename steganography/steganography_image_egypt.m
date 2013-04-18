@@ -24,12 +24,14 @@ secret_msg_h = 36;
 %@@ Output image quality
 output_quality = 75;
 
-%@@ Which colour channel to use (1=r, 2=g, 3=b)
+%@@ Whether to force the image to be greyscale.
+%@@ If not greyscale, select which colour channel to use (1=r, 2=g, 3=b)
+use_greyscale = true;
 channel = 3;
 
 %@@ Wavelet transformation
-%@@ [Default: haar]
-mode = 'haar';
+%@@ [Default: 'idk' if use_greyscale = false, otherwise 'haar']
+mode = 'idk';
 
 %@@ Block size: Size in pixels of the blocks that the secret is split up
 %@@ into. Smaller values lead to more accuracy and robustness, but slower
@@ -51,7 +53,7 @@ pixel_size = 3;
 is_binary = true;
 
 % Load images
-im_carrier = double(imread(carrier_image_filename));
+im_carrier = imload(carrier_image_filename, use_greyscale);
 
 [im_carrier_w im_carrier_h ~] = size(im_carrier);
 if isempty(secret_msg_str)
@@ -61,11 +63,20 @@ secret_msg_bin = str2bin(secret_msg_str);
 
 im_secret = bin2binimg(secret_msg_bin, secret_msg_w / pixel_size, secret_msg_h / pixel_size, pixel_size, 255);
 
-% Perform Egypt encoding on one colour channel
-imc_carrier = im_carrier(:,:,channel);
+if use_greyscale
+    imc_carrier = im_carrier;
+else
+    imc_carrier = im_carrier(:,:,channel);
+end
+
 [imc_stego, key1, key2, im_wavelet_stego, im_wavelet_secret] = steg_egypt_encode(imc_carrier, im_secret, mode, block_size, is_binary);
-im_stego = im_carrier;
-im_stego(:,:,channel) = imc_stego;
+
+if use_greyscale
+    im_stego = imc_stego;
+else
+    im_stego = im_carrier;
+    im_stego(:,:,channel) = imc_stego;
+end
 
 % Write stego image to file
 imwrite(uint8(im_stego), output_image_filename, 'Quality', output_quality);
@@ -74,10 +85,15 @@ imwrite(uint8(im_stego), output_image_filename, 'Quality', output_quality);
 % ======
 
 % Load G
-im_stego = double(imread(output_image_filename));
+im_stego = imload(output_image_filename, use_greyscale);
 
 % Perform Egypt decoding
-imc_stego = im_stego(:,:,channel);
+if use_greyscale
+    imc_stego = im_stego;
+else
+    imc_stego = im_stego(:,:,channel);
+end
+
 [im_extracted, im_errors] = steg_egypt_decode(imc_stego, secret_msg_w, secret_msg_h, key1, key2, mode, block_size, is_binary);
 
 % Extract the binary data from the extracted image
