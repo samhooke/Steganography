@@ -13,17 +13,27 @@ output_image_filename = [dir_output, 'lena_dct.jpg'];
 %@@ Leave blank to automatically generate a message
 secret_msg_str = '';
 
-%@@ Which colour channel to use (1=r, 2=g, 3=b)
+%@@ Whether to force the image to be greyscale.
+%@@ If not greyscale, select which colour channel to use (1=r, 2=g, 3=b)
+use_greyscale = true;
 channel = 3;
 
 %@@ Output image quality
-output_quality = 60;
+output_quality = 100;
 
 %@@ Coefficients
 frequency_coefficients = [3 6; 5 2];
 
-% Load image, generate message if necessary
-im = imread(carrier_image_filename);
+%@@ Persistence
+%@@ [Default: 25 if use_greyscale = true, otherwise 100]
+if use_greyscale
+    persistence = 25;
+else
+    persistence = 100;
+end
+
+% Load image
+im = imload(carrier_image_filename, use_greyscale);
 
 %%%im = rgb2hsv(im);
 
@@ -35,27 +45,39 @@ if isempty(secret_msg_str)
 end;
 secret_msg_bin = str2bin(secret_msg_str);
 
-% Take chosen channel from the image and encode
-imc = im(:,:,channel);
-[imc_stego bits_written bits_unused] = steg_dct_encode(secret_msg_bin, imc, frequency_coefficients, 100);
+if use_greyscale
+    imc = im;
+else
+    % Take chosen channel from the image and encode
+    imc = im(:,:,channel);
+end
+[imc_stego bits_written bits_unused] = steg_dct_encode(secret_msg_bin, imc, frequency_coefficients, persistence);
 
-% Put the channels back together, and write
-im_stego = im;
-im_stego(:,:,channel) = imc_stego;
+if use_greyscale
+    im_stego = imc_stego;
+else
+    % Put the channels back together, and write
+    im_stego = im;
+    im_stego(:,:,channel) = imc_stego;
+end
 
 %%%im_stego = hsv2rgb(im_stego);
 
-imwrite(im_stego, output_image_filename, 'Quality', output_quality);
+imwrite(uint8(im_stego), output_image_filename, 'Quality', output_quality);
 
 % Decode
 % ======
 
 % Read image and take chosen channel
-im_stego = imread(output_image_filename);
+im_stego = imload(output_image_filename, use_greyscale);
 
 %%%im_stego = rgb2hsv(im_stego);
 
-imc_stego = im_stego(:,:,channel);
+if use_greyscale
+    imc_stego = im_stego;
+else
+    imc_stego = im_stego(:,:,channel);
+end
 
 % Decode
 [extracted_msg_bin] = steg_dct_decode(imc_stego, frequency_coefficients);
@@ -67,10 +89,10 @@ difference_sum = sum(difference);
 
 % Display images
 subplot(1,3,1);
-imshow((im));
+imshow(uint8(im));
 title('Carrier');
 subplot(1,3,2);
-imshow((im_stego));
+imshow(uint8(im_stego));
 title('Stego image');
 subplot(1,3,3);
 imshow(difference);
