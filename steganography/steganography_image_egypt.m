@@ -44,7 +44,7 @@ block_size = 4;
 %@@ it in the form of an image as black and white pixels, this controls how
 %@@ big those pixels are, in pixels. Larger values lead to more robustness,
 %@@ but less capacity.
-%@@ [Default: 2]
+%@@ [Default: 3]
 pixel_size = 3;
 
 % Set to true, because we are encoding secret binary data, not an image
