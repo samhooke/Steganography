@@ -17,7 +17,7 @@ secret_msg_str = '';
 channel = 3;
 
 %@@ Output image quality
-output_quality = 60;
+output_quality = 75;
 
 %@@ Coefficients
 frequency_coefficients = [3 6; 5 2];

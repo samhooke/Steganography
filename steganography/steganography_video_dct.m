@@ -10,7 +10,7 @@ carrier_video_filename = 'input\bunny.mp4';
 cd('C:\Users\Muffin\Documents\GitHub\Steganography');
 
 %@@ Output video, format and compression
-profile_type = 6;
+profile_type = 3;
 
 switch profile_type
     case 1

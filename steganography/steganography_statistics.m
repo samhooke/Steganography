@@ -64,6 +64,7 @@ end
 
 % Output message before and after
 if output_message_strings
+    fprintf('Encoded message length: %d bytes\n', length(secret_msg_str));
     fprintf('Encoded message: %s\n', secret_msg_str(1:min(output_message_truncate, length(secret_msg_str))));
     fprintf('Decoded message: %s\n', extracted_msg_str(1:min(output_message_truncate, length(extracted_msg_str))));
 

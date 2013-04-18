@@ -20,7 +20,7 @@ channel = 3;
 output_quality = 90;
 
 %@@ Coefficients
-frequency_coefficients = generate_allowed_coefficients();%;[4 6; 5 2; 6 5];%[4 3; 3 3; 3 4];
+frequency_coefficients = [4 6; 5 2; 6 5];
 
 % Load image, generate message if necessary
 im = imread(carrier_image_filename);
@@ -38,8 +38,8 @@ secret_msg_bin = str2bin(secret_msg_str);
 imc = im(:,:,channel);
 
 % Perform encoding
-variance_threshold = 3; % Higher = more blocks used
-minimum_distance_encode = 30; % Higher = more robust; more visible
+variance_threshold = 1; % Higher = more blocks used
+minimum_distance_encode = 200; % Higher = more robust; more visible
 minimum_distance_decode = 10;
 [imc_stego, bits_written, bits_unused, invalid_blocks_encode, debug_invalid_encode] = steg_zk_encode(secret_msg_bin, imc, frequency_coefficients, variance_threshold, minimum_distance_encode);
 
@@ -83,5 +83,3 @@ title('Invalid diff');
 
 % Print statistics
 steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_bin);
-
-%fprintf('Invalid blocks: (encode=%d) (decode=%d)', invalid_blocks_encode, invalid_blocks_decode);
