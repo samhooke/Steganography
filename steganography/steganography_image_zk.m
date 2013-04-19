@@ -7,7 +7,7 @@ test_name = 'ZK_grey';
 
 %@@ How many test iterations to do
 %@@ To test from 100% to 0% quality, set to 101
-iteration_total = 101;
+iteration_total = 1;
 
 dir_results = [dir_results, test_name, '\'];
 if iteration_total > 1
@@ -125,7 +125,8 @@ imshow(~(debug_invalid_encode - debug_invalid_decode));
 title('Invalid diff');
 
 % Print statistics
-[length_bytes, msg_similarity_py, msg_similarity, im_psnr] = steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_bin, encode_time, decode_time);
+length_bytes = bits_written / 8;
+[~, msg_similarity_py, msg_similarity, im_psnr] = steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_bin, encode_time, decode_time);
 
 % Log data if running multiple tests
 if iteration_total > 1
