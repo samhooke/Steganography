@@ -16,9 +16,8 @@ if iteration_total > 1
     end
     mkdir(dir_results);
 end
-mkdir(dir_results);
 iteration_data = zeros(7, iteration_total);
-output_csv_filename = [dir_results, 'results.csv'];
+output_csv_filename = [dir_results, test_name, '_results.csv'];
 
 for iteration_current = 1:iteration_total
 
