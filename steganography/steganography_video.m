@@ -67,7 +67,7 @@ use_greyscale = false;
 %@@ Choose algorithm:
 % 'Egypt'
 % 'DCT'
-algorithm = 'wdct';
+algorithm = 'fusion';
 
 algorithm = lower(algorithm);
 switch algorithm
@@ -79,6 +79,8 @@ switch algorithm
         [secret_msg_bin, frequency_coefficients, variance_threshold, minimum_distance_encode, minimum_distance_decode] = steg_zk_default(w, h, use_greyscale);
     case 'wdct'
         [secret_msg_bin, frequency_coefficients, persistence, mode] = steg_wdct_default(w, h, use_greyscale);
+    case 'fusion'
+        [secret_msg_bin, alpha, mode] = steg_fusion_default(w, h, use_greyscale);
     case 'egypt'
         [secret_msg_binimg, secret_msg_w, secret_msg_h, mode, block_size, pixel_size, is_binary] = steg_egypt_default(w, h, use_greyscale);
     otherwise
@@ -129,6 +131,8 @@ for num = 1:frame_count
             framec_part = framec(1:floorx(h, 16), 1:floorx(w, 16));
             [framec_part, ~] = steg_wdct_encode(framec_part, secret_msg_bin, mode, frequency_coefficients, persistence);
             framec(1:floorx(h, 16), 1:floorx(w, 16)) = framec_part;
+        case 'fusion'
+            [framec, ~, ~] = steg_fusion_encode(framec, secret_msg_bin, alpha, mode);
         case 'egypt'
             [framec, key1, key2, ~, ~] = steg_egypt_encode(framec, secret_msg_binimg, mode, block_size, is_binary);
         otherwise
@@ -174,6 +178,12 @@ channel = 3;
 vin = VideoReader(output_video_filename);
 frame_count = min(vin.NumberOfFrames, frame_max);
 
+% Fusion algorithm requires original video
+if strcmp(algorithm, 'fusion')
+    vin_original = VideoReader(input_video_filename);
+end
+    
+
 for num = 1:frame_count
     frame = read(vin, frame_start + num);
     
@@ -196,6 +206,10 @@ for num = 1:frame_count
         case 'wdct'
             framec_part = framec(1:352, 1:640);
             [extracted_msg_bin] = steg_wdct_decode(framec_part, mode, frequency_coefficients);
+        case 'fusion'
+            frame_original = read(vin_original, frame_start + num);
+            framec_original = frame_original(:,:,channel);
+            [extracted_msg_bin] = steg_fusion_decode(framec, framec_original, mode);
         case 'egypt'
             [im_extracted, ~] = steg_egypt_decode(framec, secret_msg_w, secret_msg_h, key1, key2, mode, block_size, is_binary);
             extracted_msg_bin = binimg2bin(im_extracted, pixel_size, 127);
