@@ -5,18 +5,19 @@ clear variables;
 %@@ Name of folder to store test results in
 test_name = 'DCT_video';
 
-dir_results = [dir_results, test_name, '\'];
-if exist(dir_results, 'dir')
-    error('Directory "%s" already exists!', dir_results);
+dir_results_full = [dir_results, test_name, '\'];
+test_num = 0;
+while exist(dir_results_full, 'dir')
+    dir_results_full = [dir_results, test_name, '_', sprintf('%d', test_num), '\'];
+    test_num = test_num + 1;
+    
+    if test_num > 100
+        error('You should delete some test results from "%s".', dir_results);
+    end
 end
-mkdir(dir_results);
-output_csv_filename = [dir_results, test_name, '_results.csv'];
 
-%{
-TODO:
--statistics
--Egypt keys
-%}
+mkdir(dir_results_full);
+output_csv_filename = [dir_results_full, test_name, '_results.csv'];
 
 % Encode
 % ======
@@ -32,7 +33,11 @@ output_video_filename_base = [dir_output, 'bunny_dct'];
 %@@ 3 = Motion JPEG 2000  (.mj2)
 %@@ 4 = MPEG-4            (.mp4)
 %@@ 5 = Uncompressed AVI  (.avi)
-profile_type = 3;
+profile_type = 2;
+
+%@@ Video quality
+%@@ NOTE: Only applicable to Motion JPEG AVI and MPEG-4
+output_quality = 75;
 
 %@@ Choose algorithm: LSB, DCT, ZK, WDCT, Fusion, Egypt
 %@@ (not case sensitive)
@@ -165,6 +170,15 @@ end;
 
 %implay(vprocess);
 
+% Choose video quality, if applicable
+% Only works for Motion JPEG AVI and MPEG-4
+if profile_type == 2 || profile_type == 4
+    vout.Quality = output_quality;
+else
+    % If quality cannot be defined, set it to -1 for the logger
+    output_quality = -1;
+end
+
 % Write video to file
 open(vout);
 writeVideo(vout, vprocess);
@@ -232,11 +246,12 @@ for num = 1:frame_count
     end
     
     % Store statistics for this iteration
-    iteration_data(((num - 1) * 7) + 1:((num - 1) * 7) + 1 + 6) = [100, msg_similarity_py * 100, msg_similarity * 100, im_psnr, encode_time, decode_time, length_bytes];
+    iteration_data(((num - 1) * 7) + 1:((num - 1) * 7) + 1 + 6) = [output_quality, msg_similarity_py * 100, msg_similarity * 100, im_psnr, encode_time, decode_time, length_bytes];
 end;
 
 % Save statistics to file
 test_data_save(output_csv_filename, iteration_data');
+fprintf('Saved results at: %s\n', output_csv_filename);
 
 %{
 frame = cs2cs(frame, colourspace, 'rgb');
