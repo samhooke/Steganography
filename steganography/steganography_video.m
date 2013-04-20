@@ -125,9 +125,9 @@ for num = 1:frame_count
         case 'zk'
             [framec, bits_written, ~, ~, ~] = steg_zk_encode(secret_msg_bin, framec, frequency_coefficients, variance_threshold, minimum_distance_encode);
         case 'wdct'
-            framec_part = framec(1:352, 1:640);
+            framec_part = framec(1:floorx(h, 16), 1:floorx(w, 16));
             [framec_part, ~] = steg_wdct_encode(framec_part, secret_msg_bin, mode, frequency_coefficients, persistence);
-            framec(1:352, 1:640) = framec_part;
+            framec(1:floorx(h, 16), 1:floorx(w, 16)) = framec_part;
         case 'egypt'
             [framec, key1, key2, ~, ~] = steg_egypt_encode(framec, secret_msg_binimg, mode, block_size, is_binary);
         otherwise
