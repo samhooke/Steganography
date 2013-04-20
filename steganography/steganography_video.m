@@ -67,16 +67,18 @@ use_greyscale = false;
 %@@ Choose algorithm:
 % 'Egypt'
 % 'DCT'
-algorithm = 'DCT';
+algorithm = 'lsb';
 
 algorithm = lower(algorithm);
 switch algorithm
-    case 'egypt'
-        [secret_msg_binimg, secret_msg_w, secret_msg_h, mode, block_size, pixel_size, is_binary] = steg_egypt_default(w, h, use_greyscale);
+    case 'lsb'
+        [secret_msg_bin] = steg_lsb_default(w, h, use_greyscale);
     case 'dct'
         [secret_msg_bin, frequency_coefficients, persistence] = steg_dct_default(w, h, use_greyscale);
+    case 'egypt'
+        [secret_msg_binimg, secret_msg_w, secret_msg_h, mode, block_size, pixel_size, is_binary] = steg_egypt_default(w, h, use_greyscale);
     otherwise
-        %!?!?!?
+        error('No such algorithm "%d" exists.', algorithm);
 end
 
 vin = VideoReader(input_video_filename);
@@ -112,12 +114,14 @@ for num = 1:frame_count
 
     % Encode
     switch algorithm
-        case 'egypt'
-            [framec, key1, key2, ~, ~] = steg_egypt_encode(framec, secret_msg_binimg, mode, block_size, is_binary);
+        case 'lsb'
+            [framec] = steg_lsb_encode(framec, secret_msg_bin);
         case 'dct'
             [framec, ~, ~] = steg_dct_encode(secret_msg_bin, framec, frequency_coefficients, persistence);
+        case 'egypt'
+            [framec, key1, key2, ~, ~] = steg_egypt_encode(framec, secret_msg_binimg, mode, block_size, is_binary);
         otherwise
-            %!??!?!?!
+            error('No such algorithm "%d" exists for encoding.', algorithm);
     end
 
     frame(:,:,channel) = framec;
@@ -135,7 +139,7 @@ for num = 1:frame_count
     vprocess(num).cdata = frame;
 end;
 
-implay(vprocess);
+%implay(vprocess);
 
 % Write video to file
 open(vout);
@@ -175,13 +179,15 @@ for num = 1:frame_count
 
     % Decode
     switch algorithm
+        case 'lsb'
+            [extracted_msg_bin] = steg_lsb_decode(framec);
+        case 'dct'
+            [extracted_msg_bin] = steg_dct_decode(framec, frequency_coefficients);
         case 'egypt'
             [im_extracted, ~] = steg_egypt_decode(framec, secret_msg_w, secret_msg_h, key1, key2, mode, block_size, is_binary);
             extracted_msg_bin = binimg2bin(im_extracted, pixel_size, 127);
-        case 'dct'
-            [extracted_msg_bin] = steg_dct_decode(framec, frequency_coefficients);
         otherwise
-            %!??!?!?!
+            error('No such algorithm "%d" exists for decoding.', algorithm);
     end
     
     extracted_msg_str = bin2str(extracted_msg_bin);
@@ -195,8 +201,10 @@ elseif strcmp(colourspace, 'ycbcr')
     frame = ycbcr2rgb(frame);
 end;
 
+%{
 if strcmp(colourspace, 'hsv')
     imshow(uint8(frame * 255));
 else
     imshow(uint8(frame));
 end
+%}
