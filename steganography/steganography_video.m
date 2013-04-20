@@ -41,7 +41,7 @@ output_video_filename_base = [dir_output, 'bunny_dct'];
 output_video_filename = [output_video_filename_base, ' ', output_video_profilename, output_video_ext];
 
 %@@ Message string to encode into carrier video
-secret_msg_str = '0123456789__________0123456789----------';
+%secret_msg_str = '0123456789__________0123456789----------';
 
 %@@ Frames to use from the video
 frame_start = 0;
@@ -51,7 +51,7 @@ frame_max = 5;
 channel = 3;
 
 %@@ Which colour space to use ('rgb', 'hsv', 'ycbcr');
-colourspace = 'hsv';
+colourspace = 'rgb';
 
 %%@@ Persistence the steg encoding (higher = more persistent, more visible)
 %persistence = 40;
@@ -72,14 +72,13 @@ algorithm = 'DCT';
 algorithm = lower(algorithm);
 switch algorithm
     case 'egypt'
-        [secret_msg_binimg, secret_msg_w, secret_msg_h, mode, block_size, is_binary] = steg_egypt_default(w, h, use_greyscale);
+        [secret_msg_binimg, secret_msg_w, secret_msg_h, mode, block_size, pixel_size, is_binary] = steg_egypt_default(w, h, use_greyscale);
     case 'dct'
         [secret_msg_bin, frequency_coefficients, persistence] = steg_dct_default(w, h, use_greyscale);
     otherwise
         %!?!?!?
 end
 
-secret_msg_bin = str2bin(secret_msg_str);
 vin = VideoReader(input_video_filename);
 vout = VideoWriter(output_video_filename, profile);
 if (frame_max <= frame_start)
@@ -187,7 +186,7 @@ for num = 1:frame_count
     
     extracted_msg_str = bin2str(extracted_msg_bin);
     
-    fprintf('Frame %d message: %s\n', num, extracted_msg_str);
+    fprintf('Frame %d message: "%s"\n', num, extracted_msg_str);
 end;
 
 if strcmp(colourspace, 'hsv')
