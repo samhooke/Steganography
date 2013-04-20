@@ -67,7 +67,7 @@ use_greyscale = false;
 %@@ Choose algorithm:
 % 'Egypt'
 % 'DCT'
-algorithm = 'zk';
+algorithm = 'wdct';
 
 algorithm = lower(algorithm);
 switch algorithm
@@ -77,6 +77,8 @@ switch algorithm
         [secret_msg_bin, frequency_coefficients, persistence] = steg_dct_default(w, h, use_greyscale);
     case 'zk'
         [secret_msg_bin, frequency_coefficients, variance_threshold, minimum_distance_encode, minimum_distance_decode] = steg_zk_default(w, h, use_greyscale);
+    case 'wdct'
+        [secret_msg_bin, frequency_coefficients, persistence, mode] = steg_wdct_default(w, h, use_greyscale);
     case 'egypt'
         [secret_msg_binimg, secret_msg_w, secret_msg_h, mode, block_size, pixel_size, is_binary] = steg_egypt_default(w, h, use_greyscale);
     otherwise
@@ -122,6 +124,10 @@ for num = 1:frame_count
             [framec, ~, ~] = steg_dct_encode(secret_msg_bin, framec, frequency_coefficients, persistence);
         case 'zk'
             [framec, bits_written, ~, ~, ~] = steg_zk_encode(secret_msg_bin, framec, frequency_coefficients, variance_threshold, minimum_distance_encode);
+        case 'wdct'
+            framec_part = framec(1:352, 1:640);
+            [framec_part, ~] = steg_wdct_encode(framec_part, secret_msg_bin, mode, frequency_coefficients, persistence);
+            framec(1:352, 1:640) = framec_part;
         case 'egypt'
             [framec, key1, key2, ~, ~] = steg_egypt_encode(framec, secret_msg_binimg, mode, block_size, is_binary);
         otherwise
@@ -186,6 +192,9 @@ for num = 1:frame_count
             [extracted_msg_bin] = steg_dct_decode(framec, frequency_coefficients);
         case 'zk'
             [extracted_msg_bin, ~, ~] = steg_zk_decode(framec, frequency_coefficients, minimum_distance_decode);
+        case 'wdct'
+            framec_part = framec(1:352, 1:640);
+            [extracted_msg_bin] = steg_wdct_decode(framec_part, mode, frequency_coefficients);
         case 'egypt'
             [im_extracted, ~] = steg_egypt_decode(framec, secret_msg_w, secret_msg_h, key1, key2, mode, block_size, is_binary);
             extracted_msg_bin = binimg2bin(im_extracted, pixel_size, 127);
