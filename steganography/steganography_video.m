@@ -2,11 +2,27 @@ clc;
 clear variables;
 [dir_input, dir_output, dir_results] = steganography_init();
 
+%{
+TODO:
+-statistics
+-Egypt keys
+%}
+
 % Encode
 % ======
 
-%@@ Input video
+%@@ Input video and output video. File extension is not required for output
+%@@ because it is generated based upon the chosen format.
 input_video_filename = [dir_input, 'bunny.mp4'];
+output_video_filename_base = [dir_output, 'bunny_dct'];
+
+%@@ Output video, format and compression
+%@@ 1 = Archival          (.mj2)
+%@@ 2 = Motion JPEG AVI   (.avi)
+%@@ 3 = Motion JPEG 2000  (.mj2)
+%@@ 4 = MPEG-4            (.mp4)
+%@@ 5 = Uncompressed AVI  (.avi)
+profile_type = 3;
 
 %@@ Choose algorithm: LSB, DCT, ZK, WDCT, Fusion, Egypt
 %@@ (not case sensitive)
@@ -14,7 +30,7 @@ algorithm = 'dct';
 
 %@@ Frames to use from the video
 frame_start = 0;
-frame_max = 5;
+frame_max = 3;
 
 %@@ Which colour channel to use (1=r, 2=g, 3=b)
 channel = 3;
@@ -24,9 +40,6 @@ colourspace = 'rgb';
 
 %@@ Whether the video is greyscale
 use_greyscale = false;
-
-%@@ Output video, format and compression
-profile_type = 3;
 
 switch profile_type
     case 1
@@ -54,7 +67,6 @@ switch profile_type
         break
 end
 
-output_video_filename_base = [dir_output, 'bunny_dct'];
 output_video_filename = [output_video_filename_base, ' ', output_video_profilename, output_video_ext];
 
 vin = VideoReader(input_video_filename);
@@ -84,7 +96,7 @@ switch algorithm
     case 'egypt'
         [secret_msg_binimg, secret_msg_w, secret_msg_h, mode, block_size, pixel_size, is_binary] = steg_egypt_default(width, height, use_greyscale);
     otherwise
-        error('No such algorithm "%d" exists.', algorithm);
+        error('No such algorithm "%s" exists.', algorithm);
 end
 
 vprocess(1:frame_count) = struct('cdata', zeros(height, width, 3, 'uint8'), 'colormap', []);
@@ -94,12 +106,15 @@ for num = 1:frame_count
     frame = read(vin, frame_start + num);
     
     frame_before = frame(:,:,channel);
-
+    %{
     if strcmp(colourspace, 'hsv')
         frame = rgb2hsv(frame);
     elseif strcmp(colourspace, 'ycbcr')
         frame = rgb2ycbcr(frame);
     end;
+    %}
+    
+    frame = cs2cs(frame, 'rgb', colourspace);
     
     if strcmp(colourspace, 'hsv')
         framec = frame(:,:,channel) * 255;
@@ -123,19 +138,23 @@ for num = 1:frame_count
         case 'fusion'
             [framec, ~, ~] = steg_fusion_encode(framec, secret_msg_bin, alpha, mode);
         case 'egypt'
-            [framec, key1, key2, ~, ~] = steg_egypt_encode(framec, secret_msg_binimg, mode, block_size, is_binary);
+            [framec, key1(:,:,num), key2(:,:,num), ~, ~] = steg_egypt_encode(framec, secret_msg_binimg, mode, block_size, is_binary);
         otherwise
-            error('No such algorithm "%d" exists for encoding.', algorithm);
+            error('No such algorithm "%s" exists for encoding.', algorithm);
     end
 
     frame(:,:,channel) = framec;
     
+    %{
     if strcmp(colourspace, 'hsv')
         frame = hsv2rgb(frame);
     elseif strcmp(colourspace, 'ycbcr')
         frame = ycbcr2rgb(frame);
     end;
-
+    %}
+    
+    frame = cs2cs(frame, colourspace, 'rgb');
+    
     frame_after = frame(:,:,channel);
     
     frame = uint8(frame);
@@ -157,30 +176,27 @@ fprintf('Video written\n');
 % Decode
 % ======
 
-%@@ Frames to use from the video
-frame_start = 0;
-frame_max = 5;
-
-%@@ Which colour channel to use (1=r, 2=g, 3=b)
-channel = 3;
-
 vin = VideoReader(output_video_filename);
 frame_count = min(vin.NumberOfFrames, frame_max);
 
-% Fusion algorithm requires original video
-if strcmp(algorithm, 'fusion')
-    vin_original = VideoReader(input_video_filename);
-end
-    
+vin_original = VideoReader(input_video_filename);
 
 for num = 1:frame_count
     frame = read(vin, frame_start + num);
-    
+    frame_original = read(vin_original, frame_start + num);
+
+    %{
     if strcmp(colourspace, 'hsv')
         frame = rgb2hsv(frame);
+        frame_original = rgb2hsv(frame_original);
     elseif strcmp(colourspace, 'ycbcr')
         frame = rgb2ycbcr(frame);
+        frame_original = rgb2ycbcr(frame_original);
     end;
+    %}
+    
+    frame = cs2cs(frame, 'rgb', colourspace);
+    frame_original = cs2cs(frame_original, 'rgb', colourspace);
     
     framec = frame(:,:,channel);
 
@@ -193,17 +209,16 @@ for num = 1:frame_count
         case 'zk'
             [extracted_msg_bin, ~, ~] = steg_zk_decode(framec, frequency_coefficients, minimum_distance_decode);
         case 'wdct'
-            framec_part = framec(1:352, 1:640);
+            % WDCT only works on frame size of 16
+            framec_part = framec(1:floorx(height, 16), 1:floorx(width, 16));
             [extracted_msg_bin] = steg_wdct_decode(framec_part, mode, frequency_coefficients);
         case 'fusion'
-            frame_original = read(vin_original, frame_start + num);
-            framec_original = frame_original(:,:,channel);
             [extracted_msg_bin] = steg_fusion_decode(framec, framec_original, mode);
         case 'egypt'
-            [im_extracted, ~] = steg_egypt_decode(framec, secret_msg_w, secret_msg_h, key1, key2, mode, block_size, is_binary);
+            [im_extracted, ~] = steg_egypt_decode(framec, secret_msg_w, secret_msg_h, key1(:,:,num), key2(:,:,num), mode, block_size, is_binary);
             extracted_msg_bin = binimg2bin(im_extracted, pixel_size, 127);
         otherwise
-            error('No such algorithm "%d" exists for decoding.', algorithm);
+            error('No such algorithm "%s" exists for decoding.', algorithm);
     end
     
     extracted_msg_str = bin2str(extracted_msg_bin);
@@ -211,11 +226,15 @@ for num = 1:frame_count
     fprintf('Frame %d message: "%s"\n', num, extracted_msg_str);
 end;
 
+%{
 if strcmp(colourspace, 'hsv')
     frame = hsv2rgb(frame);
 elseif strcmp(colourspace, 'ycbcr')
     frame = ycbcr2rgb(frame);
 end;
+%}
+
+frame = cs2cs(frame, colourspace, 'rgb');
 
 %{
 if strcmp(colourspace, 'hsv')
