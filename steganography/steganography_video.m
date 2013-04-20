@@ -8,6 +8,23 @@ clear variables;
 %@@ Input video
 input_video_filename = [dir_input, 'bunny.mp4'];
 
+%@@ Choose algorithm: LSB, DCT, ZK, WDCT, Fusion, Egypt
+%@@ (not case sensitive)
+algorithm = 'dct';
+
+%@@ Frames to use from the video
+frame_start = 0;
+frame_max = 5;
+
+%@@ Which colour channel to use (1=r, 2=g, 3=b)
+channel = 3;
+
+%@@ Which colour space to use ('rgb', 'hsv', 'ycbcr');
+colourspace = 'rgb';
+
+%@@ Whether the video is greyscale
+use_greyscale = false;
+
 %@@ Output video, format and compression
 profile_type = 3;
 
@@ -40,53 +57,6 @@ end
 output_video_filename_base = [dir_output, 'bunny_dct'];
 output_video_filename = [output_video_filename_base, ' ', output_video_profilename, output_video_ext];
 
-%@@ Message string to encode into carrier video
-%secret_msg_str = '0123456789__________0123456789----------';
-
-%@@ Frames to use from the video
-frame_start = 0;
-frame_max = 5;
-
-%@@ Which colour channel to use (1=r, 2=g, 3=b)
-channel = 3;
-
-%@@ Which colour space to use ('rgb', 'hsv', 'ycbcr');
-colourspace = 'rgb';
-
-%%@@ Persistence the steg encoding (higher = more persistent, more visible)
-%persistence = 40;
-%
-%%@@ Frequency coefficients
-%frequency_coefficients = [3 6; 5 2];
-
-w = 640;
-h = 360;
-
-use_greyscale = false;
-
-%@@ Choose algorithm:
-% 'Egypt'
-% 'DCT'
-algorithm = 'fusion';
-
-algorithm = lower(algorithm);
-switch algorithm
-    case 'lsb'
-        [secret_msg_bin] = steg_lsb_default(w, h, use_greyscale);
-    case 'dct'
-        [secret_msg_bin, frequency_coefficients, persistence] = steg_dct_default(w, h, use_greyscale);
-    case 'zk'
-        [secret_msg_bin, frequency_coefficients, variance_threshold, minimum_distance_encode, minimum_distance_decode] = steg_zk_default(w, h, use_greyscale);
-    case 'wdct'
-        [secret_msg_bin, frequency_coefficients, persistence, mode] = steg_wdct_default(w, h, use_greyscale);
-    case 'fusion'
-        [secret_msg_bin, alpha, mode] = steg_fusion_default(w, h, use_greyscale);
-    case 'egypt'
-        [secret_msg_binimg, secret_msg_w, secret_msg_h, mode, block_size, pixel_size, is_binary] = steg_egypt_default(w, h, use_greyscale);
-    otherwise
-        error('No such algorithm "%d" exists.', algorithm);
-end
-
 vin = VideoReader(input_video_filename);
 vout = VideoWriter(output_video_filename, profile);
 if (frame_max <= frame_start)
@@ -97,6 +67,25 @@ end;
 fps = vin.FrameRate;
 width = vin.Width;
 height = vin.Height;
+
+% Load chosen algorithm defaults
+algorithm = lower(algorithm);
+switch algorithm
+    case 'lsb'
+        [secret_msg_bin] = steg_lsb_default(width, height, use_greyscale);
+    case 'dct'
+        [secret_msg_bin, frequency_coefficients, persistence] = steg_dct_default(width, height, use_greyscale);
+    case 'zk'
+        [secret_msg_bin, frequency_coefficients, variance_threshold, minimum_distance_encode, minimum_distance_decode] = steg_zk_default(width, height, use_greyscale);
+    case 'wdct'
+        [secret_msg_bin, frequency_coefficients, persistence, mode] = steg_wdct_default(width, height, use_greyscale);
+    case 'fusion'
+        [secret_msg_bin, alpha, mode] = steg_fusion_default(width, height, use_greyscale);
+    case 'egypt'
+        [secret_msg_binimg, secret_msg_w, secret_msg_h, mode, block_size, pixel_size, is_binary] = steg_egypt_default(width, height, use_greyscale);
+    otherwise
+        error('No such algorithm "%d" exists.', algorithm);
+end
 
 vprocess(1:frame_count) = struct('cdata', zeros(height, width, 3, 'uint8'), 'colormap', []);
 
@@ -128,9 +117,9 @@ for num = 1:frame_count
             [framec, bits_written, ~, ~, ~] = steg_zk_encode(secret_msg_bin, framec, frequency_coefficients, variance_threshold, minimum_distance_encode);
         case 'wdct'
             % WDCT only works on frame size of 16
-            framec_part = framec(1:floorx(h, 16), 1:floorx(w, 16));
+            framec_part = framec(1:floorx(height, 16), 1:floorx(width, 16));
             [framec_part, ~] = steg_wdct_encode(framec_part, secret_msg_bin, mode, frequency_coefficients, persistence);
-            framec(1:floorx(h, 16), 1:floorx(w, 16)) = framec_part;
+            framec(1:floorx(height, 16), 1:floorx(width, 16)) = framec_part;
         case 'fusion'
             [framec, ~, ~] = steg_fusion_encode(framec, secret_msg_bin, alpha, mode);
         case 'egypt'
