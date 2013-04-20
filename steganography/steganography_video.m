@@ -3,8 +3,9 @@ clear variables;
 [dir_input, dir_output, dir_results] = steganography_init();
 
 %@@ Name of folder to store test results in
-test_name = 'DCT_video';
+test_name = 'ZK_video';
 
+% Pick a unique output folder name in the format of "test_name + #"
 dir_results_full = [dir_results, test_name, '\'];
 test_num = 0;
 while exist(dir_results_full, 'dir')
@@ -25,7 +26,7 @@ output_csv_filename = [dir_results_full, test_name, '_results.csv'];
 %@@ Input video and output video. File extension is not required for output
 %@@ because it is generated based upon the chosen format.
 input_video_filename = [dir_input, 'bunny.mp4'];
-output_video_filename_base = [dir_output, 'bunny_dct'];
+output_video_filename_base = [dir_results_full, 'bunny_dct'];
 
 %@@ Output video, format and compression
 %@@ 1 = Archival          (.mj2)
@@ -41,11 +42,11 @@ output_quality = 75;
 
 %@@ Choose algorithm: LSB, DCT, ZK, WDCT, Fusion, Egypt
 %@@ (not case sensitive)
-algorithm = 'egypt';
+algorithm = 'Egypt';
 
 %@@ Frames to use from the video
 frame_start = 0;
-frame_max = 3;
+frame_max = 100;
 
 %@@ Which colour channel to use (1=r, 2=g, 3=b)
 channel = 3;
@@ -120,6 +121,13 @@ vprocess(1:frame_count) = struct('cdata', zeros(height, width, 3, 'uint8'), 'col
 encode_time_log = zeros(1, frame_count);
 bits_written_log = zeros(1, frame_count);
 
+if strcmp(algorithm, 'egypt')
+    % Create key1 and key2 for Egypt algorithm
+    keylength = secret_msg_w / block_size * secret_msg_h / block_size;
+    key1 = zeros(1, keylength, frame_count);
+    key2 = zeros(1, keylength, frame_count);
+end
+
 for num = 1:frame_count
     fprintf('Processing frame %d of %d\n', num, frame_count);
     frame = read(vin, frame_start + num);
@@ -186,8 +194,6 @@ close(vout);
 
 fprintf('Video written\n');
 
-%%
-
 % Decode
 % ======
 
@@ -252,6 +258,10 @@ end;
 % Save statistics to file
 test_data_save(output_csv_filename, iteration_data');
 fprintf('Saved results at: %s\n', output_csv_filename);
+
+% Tell Matlab to actually close the handle to the video file, because no
+% other method seems to work. Not "close(vin)", nor "clear mex".
+clear vin
 
 %{
 frame = cs2cs(frame, colourspace, 'rgb');
