@@ -2,6 +2,16 @@ clc;
 clear variables;
 [dir_input, dir_output, dir_results] = steganography_init();
 
+%@@ Name of folder to store test results in
+test_name = 'DCT_video';
+
+dir_results = [dir_results, test_name, '\'];
+if exist(dir_results, 'dir')
+    error('Directory "%s" already exists!', dir_results);
+end
+mkdir(dir_results);
+output_csv_filename = [dir_results, test_name, '_results.csv'];
+
 %{
 TODO:
 -statistics
@@ -26,7 +36,7 @@ profile_type = 3;
 
 %@@ Choose algorithm: LSB, DCT, ZK, WDCT, Fusion, Egypt
 %@@ (not case sensitive)
-algorithm = 'dct';
+algorithm = 'egypt';
 
 %@@ Frames to use from the video
 frame_start = 0;
@@ -94,26 +104,23 @@ switch algorithm
     case 'fusion'
         [secret_msg_bin, alpha, mode] = steg_fusion_default(width, height, use_greyscale);
     case 'egypt'
-        [secret_msg_binimg, secret_msg_w, secret_msg_h, mode, block_size, pixel_size, is_binary] = steg_egypt_default(width, height, use_greyscale);
+        [secret_msg_bin, secret_msg_binimg, secret_msg_w, secret_msg_h, mode, block_size, pixel_size, is_binary] = steg_egypt_default(width, height, use_greyscale);
     otherwise
         error('No such algorithm "%s" exists.', algorithm);
 end
 
 vprocess(1:frame_count) = struct('cdata', zeros(height, width, 3, 'uint8'), 'colormap', []);
 
+% Log some things that we need for statistics at the end
+encode_time_log = zeros(1, frame_count);
+bits_written_log = zeros(1, frame_count);
+
 for num = 1:frame_count
     fprintf('Processing frame %d of %d\n', num, frame_count);
     frame = read(vin, frame_start + num);
     
     frame_before = frame(:,:,channel);
-    %{
-    if strcmp(colourspace, 'hsv')
-        frame = rgb2hsv(frame);
-    elseif strcmp(colourspace, 'ycbcr')
-        frame = rgb2ycbcr(frame);
-    end;
-    %}
-    
+
     frame = cs2cs(frame, 'rgb', colourspace);
     
     if strcmp(colourspace, 'hsv')
@@ -123,13 +130,14 @@ for num = 1:frame_count
     end;
 
     % Encode
+    tic;
     switch algorithm
         case 'lsb'
             [framec] = steg_lsb_encode(framec, secret_msg_bin);
         case 'dct'
             [framec, ~, ~] = steg_dct_encode(secret_msg_bin, framec, frequency_coefficients, persistence);
         case 'zk'
-            [framec, bits_written, ~, ~, ~] = steg_zk_encode(secret_msg_bin, framec, frequency_coefficients, variance_threshold, minimum_distance_encode);
+            [framec, bits_written_log(num), ~, ~, ~] = steg_zk_encode(secret_msg_bin, framec, frequency_coefficients, variance_threshold, minimum_distance_encode);
         case 'wdct'
             % WDCT only works on frame size of 16
             framec_part = framec(1:floorx(height, 16), 1:floorx(width, 16));
@@ -142,16 +150,9 @@ for num = 1:frame_count
         otherwise
             error('No such algorithm "%s" exists for encoding.', algorithm);
     end
+    encode_time_log(num) = toc;
 
     frame(:,:,channel) = framec;
-    
-    %{
-    if strcmp(colourspace, 'hsv')
-        frame = hsv2rgb(frame);
-    elseif strcmp(colourspace, 'ycbcr')
-        frame = ycbcr2rgb(frame);
-    end;
-    %}
     
     frame = cs2cs(frame, colourspace, 'rgb');
     
@@ -181,26 +182,20 @@ frame_count = min(vin.NumberOfFrames, frame_max);
 
 vin_original = VideoReader(input_video_filename);
 
+iteration_data = zeros(7, frame_count);
+
 for num = 1:frame_count
     frame = read(vin, frame_start + num);
     frame_original = read(vin_original, frame_start + num);
-
-    %{
-    if strcmp(colourspace, 'hsv')
-        frame = rgb2hsv(frame);
-        frame_original = rgb2hsv(frame_original);
-    elseif strcmp(colourspace, 'ycbcr')
-        frame = rgb2ycbcr(frame);
-        frame_original = rgb2ycbcr(frame_original);
-    end;
-    %}
     
     frame = cs2cs(frame, 'rgb', colourspace);
     frame_original = cs2cs(frame_original, 'rgb', colourspace);
     
     framec = frame(:,:,channel);
+    framec_original = frame_original(:,:,channel);
 
     % Decode
+    tic;
     switch algorithm
         case 'lsb'
             [extracted_msg_bin] = steg_lsb_decode(framec);
@@ -220,23 +215,32 @@ for num = 1:frame_count
         otherwise
             error('No such algorithm "%s" exists for decoding.', algorithm);
     end
+    decode_time = toc;
+    encode_time = encode_time_log(num);
     
     extracted_msg_str = bin2str(extracted_msg_bin);
     
     fprintf('Frame %d message: "%s"\n', num, extracted_msg_str);
+    
+    % Calculate statistics
+    [length_bytes, msg_similarity_py, msg_similarity, im_psnr] = steganography_statistics(framec_original, framec, secret_msg_bin, extracted_msg_bin, encode_time, decode_time);
+    
+    % Length in bytes for ZK is different because it varies depending upon
+    % the image, and so was logged during encoding and is recovered now.
+    if strcmp(algorithm, 'zk')
+        length_bytes = bits_written_log(num)/8;
+    end
+    
+    % Store statistics for this iteration
+    iteration_data(((num - 1) * 7) + 1:((num - 1) * 7) + 1 + 6) = [100, msg_similarity_py * 100, msg_similarity * 100, im_psnr, encode_time, decode_time, length_bytes];
 end;
+
+% Save statistics to file
+test_data_save(output_csv_filename, iteration_data');
 
 %{
-if strcmp(colourspace, 'hsv')
-    frame = hsv2rgb(frame);
-elseif strcmp(colourspace, 'ycbcr')
-    frame = ycbcr2rgb(frame);
-end;
-%}
-
 frame = cs2cs(frame, colourspace, 'rgb');
 
-%{
 if strcmp(colourspace, 'hsv')
     imshow(uint8(frame * 255));
 else

@@ -1,4 +1,4 @@
-function [secret_msg_binimg, secret_msg_w, secret_msg_h, mode, block_size, pixel_size, is_binary] = steg_egypt_default(w, h, use_greyscale)
+function [secret_msg_bin, secret_msg_binimg, secret_msg_w, secret_msg_h, mode, block_size, pixel_size, is_binary] = steg_egypt_default(w, h, use_greyscale)
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
 
