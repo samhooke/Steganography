@@ -1,6 +1,25 @@
 clc;
 clear variables;
-[dir_input, dir_output] = steganography_init();
+[dir_input, dir_output, dir_results] = steganography_init();
+
+%@@ Name of folder to store test results in
+test_name = 'Fusion_grey';
+
+%@@ How many test iterations to do
+%@@ To test from 100% to 0% quality, set to 101
+iteration_total = 101;
+
+dir_results = [dir_results, test_name, '\'];
+if iteration_total > 1
+    if exist(dir_results, 'dir')
+        error('Directory "%s" already exists!', dir_results);
+    end
+    mkdir(dir_results);
+end
+iteration_data = zeros(7, iteration_total);
+output_csv_filename = [dir_results, test_name, '_results.csv'];
+
+for iteration_current = 1:iteration_total
 
 % Encode
 % ======
@@ -19,7 +38,12 @@ use_greyscale = true;
 channel = 3;
 
 %@@ Output image quality
-output_quality = 100;
+if iteration_total == 1
+    output_quality = 100;
+else
+    % If performing a test, try all qualities from 100 to 0
+    output_quality = 100 - (iteration_current - 1);
+end
 
 %@@ Alpha value for encoding
 alpha = 0.05;
@@ -43,7 +67,9 @@ else
     imc = im(:,:,channel);
 end
 
+tic;
 [imc_stego, im_wavelet_original, im_wavelet_stego] = steg_fusion_encode(imc, secret_msg_bin, alpha, mode);
+encode_time = toc;
 
 if use_greyscale
     im_stego = imc_stego;
@@ -81,10 +107,25 @@ else
     imc_stego = im_stego(:,:,channel);
     imc_original = im_original(:,:,channel);
 end
-    
+
+tic;
 [extracted_msg_bin] = steg_fusion_decode(imc_stego, imc_original, mode);
+decode_time = toc;
 
 extracted_msg_str = bin2str(extracted_msg_bin);
 
 % Print statistics
-steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_bin);
+[length_bytes, msg_similarity_py, msg_similarity, im_psnr] = steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_bin, encode_time, decode_time);
+
+% Log data if running multiple tests
+if iteration_total > 1
+    iteration_data(((iteration_current - 1) * 7) + 1:((iteration_current - 1) * 7) + 1 + 6) = [output_quality, msg_similarity_py * 100, msg_similarity * 100, im_psnr, encode_time, decode_time, length_bytes];
+    imwrite(uint8(im_stego), sprintf('%s%d.jpg', dir_results, output_quality));
+end
+    
+end
+
+% Save data log to file
+if iteration_total > 1
+    test_data_save(output_csv_filename, iteration_data');
+end

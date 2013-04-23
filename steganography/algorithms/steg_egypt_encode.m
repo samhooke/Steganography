@@ -156,9 +156,9 @@ end
 
 % Form CHL1 with the stego stuff
 if overwrite_BH
-    CHL1_stego = cell2mat(reshape(BH, cw, ch)');
+    CHL1_stego = cell2mat(reshape(BH, ch, cw)');
 else
-    CHL1_stego = cell2mat(reshape(BH_stego, cw, ch)');
+    CHL1_stego = cell2mat(reshape(BH_stego, ch, cw)');
 end
 
 im_wavelet_stego = [CLL1, CHL1_stego; CLH1, CHH1];

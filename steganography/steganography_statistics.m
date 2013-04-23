@@ -1,4 +1,4 @@
-function steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_bin)
+function [length_bytes, msg_similarity_py, msg_similarity, im_psnr] = steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_bin, encode_time, decode_time)
 % steganography_statistics() Show metrics about before/after steganography
 % INPUTS
 %    imc               - Original image (one channel)
@@ -10,7 +10,7 @@ function steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_
 
 %@@ Whether to output the message decoded from binary
 %@@ Also whether they should be truncated. Set to 0 to display full string
-output_message_strings = true;
+output_message_strings = false;
 output_message_truncate = 100;%Inf('double');
 
 %@@ Whether to calculate message similarity at binary level
@@ -21,19 +21,21 @@ calculate_message_similarity = true;
 %@@ Leave at false - spelling correction is far too slow
 try_correcting_spelling = false;
 
-if calculate_message_similarity_py
-    % Calculate message similarity (using Python)
-    msg_similarity_py = py_string_similarity(bin2binstr(secret_msg_bin), bin2binstr(extracted_msg_bin));
-end
+% Calculate PSNR
+im_psnr = PSNR(imc, imc_stego);
 
-if calculate_message_similarity
-    % Calculate message similarity
-    msg_similarity = string_similarity(bin2binstr(secret_msg_bin), bin2binstr(extracted_msg_bin), 0);
-end
+% Calculate message similarity (using Python)
+msg_similarity_py = py_string_similarity(bin2binstr(secret_msg_bin), bin2binstr(extracted_msg_bin));
+
+% Calculate message similarity
+msg_similarity = string_similarity(bin2binstr(secret_msg_bin), bin2binstr(extracted_msg_bin), 0);
 
 % Convert binary messages to string
 secret_msg_str = bin2str(secret_msg_bin);
 extracted_msg_str = bin2str(extracted_msg_bin);
+
+% Calculate length
+length_bytes = length(secret_msg_str);
 
 if try_correcting_spelling
     % Try performing spelling correction on the output
@@ -44,8 +46,11 @@ end
 
 % ---=== Show statistics ===---
 
+fprintf('Encode time: %fs\n', encode_time);
+fprintf('Decode time: %fs\n', decode_time);
+
 % PSNR of input image to output image
-fprintf('PSNR: %f\n', PSNR(imc, imc_stego));
+fprintf('PSNR: %f\n', im_psnr);
 
 % Percentage similarity of input secret to output secret
 if calculate_message_similarity_py
@@ -64,7 +69,7 @@ end
 
 % Output message before and after
 if output_message_strings
-    fprintf('Encoded message length: %d bytes\n', length(secret_msg_str));
+    fprintf('Encoded message length: %d bytes\n', length_bytes);
     fprintf('Encoded message: %s\n', secret_msg_str(1:min(output_message_truncate, length(secret_msg_str))));
     fprintf('Decoded message: %s\n', extracted_msg_str(1:min(output_message_truncate, length(extracted_msg_str))));
 
