@@ -36,4 +36,12 @@ for i = 1:charsTotal
 end
 
 matchPercentage = charsMatch / charsTotal;
+
+% Remap such that a match of 50% equates to 0%, because 50% means that
+% every other bit matches, which is essentially a 0% match.
+matchPercentage = 1 - ((1 - matchPercentage) * 2);
+if matchPercentage < 0
+    matchPercentage = 0;
+end
+
 end

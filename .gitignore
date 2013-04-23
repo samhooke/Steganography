@@ -17,6 +17,7 @@ slprj/
 
 # Ignore output files
 output/*
+results/*
 
 # Python
 *.py[cod]
