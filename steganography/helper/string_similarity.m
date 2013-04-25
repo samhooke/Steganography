@@ -25,9 +25,16 @@ spacing = ['%-', num2str(charsTotal),'s'];
 s1p = sprintf(spacing, s1);
 s2p = sprintf(spacing, s2);
 
+s1p = str2num(s1p')'; %#ok<ST2NM>
+s2p = str2num(s2p')'; %#ok<ST2NM>
+
 d = xor(s1p, s2p);
-charsMatch = sum(d);
-charsDiff = length(d) - charsMatch;
+charsDiff = sum(d);
+charsMatch = length(d) - charsDiff;
+
+disp(d)
+disp(charsMatch);
+disp(charsDiff);
 
 matchPercentage = charsMatch / charsTotal;
 
