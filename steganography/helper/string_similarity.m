@@ -32,10 +32,6 @@ d = xor(s1p, s2p);
 charsDiff = sum(d);
 charsMatch = length(d) - charsDiff;
 
-disp(d)
-disp(charsMatch);
-disp(charsDiff);
-
 matchPercentage = charsMatch / charsTotal;
 
 % Remap such that a match of 50% equates to 0%, because 50% means that

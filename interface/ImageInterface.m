@@ -353,6 +353,20 @@ if valid_covermedia
         % Convert message to string
         extracted_msg_str = bin2str(extracted_msg_bin);
         
+        % Show images
+        if use_greyscale
+            axes(handles.im_input);
+            imshow(uint8(imc), [0 255]);
+            axes(handles.im_output);
+            imshow(uint8(imc_stego), [0 255]);
+        else
+            axes(handles.im_input);
+            imshow(uint8(im), [0 255]);
+            axes(handles.im_output);
+            imshow(uint8(im_stego), [0 255]);
+        end
+        
+        % Calculate statistics
         [length_bytes, msg_similarity_py, msg_similarity, im_psnr] = steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_bin, encode_time, decode_time);
         
         %TODO: Make the float result from this display correctly
@@ -370,19 +384,6 @@ if valid_covermedia
         
         set(handles.msg_output, 'String', extracted_msg_str_cleaned);
         set(handles.status, 'String', sprintf('Match:%2.2f%% PSNR:%.2fdB Size:%d bytes En-time: %fs De-time: %fs', msg_similarity * 100, im_psnr, length_bytes, encode_time, decode_time));
-        
-        % Show images
-        if use_greyscale
-            axes(handles.im_input);
-            imshow(uint8(imc), [0 255]);
-            axes(handles.im_output);
-            imshow(uint8(imc_stego), [0 255]);
-        else
-            axes(handles.im_input);
-            imshow(uint8(im), [0 255]);
-            axes(handles.im_output);
-            imshow(uint8(im_stego), [0 255]);
-        end
     end
 end
 % --- Executes when selected object is changed in panel_algorithm.
