@@ -22,7 +22,7 @@ function varargout = ImageInterface(varargin)
 
 % Edit the above text to modify the response to help ImageInterface
 
-% Last Modified by GUIDE v2.5 25-Apr-2013 20:09:48
+% Last Modified by GUIDE v2.5 25-Apr-2013 21:34:48
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -49,6 +49,8 @@ function SetAllToDefaults(handles)
 % Default values
 setappdata(handles.figure1, 'current_algorithm', 'al_lsb');
 setappdata(handles.figure1, 'current_covermedia', 'cm_lena');
+setappdata(handles.figure1, 'custom_filename', '');
+setappdata(handles.figure1, 'custom_filepath', '');
 setappdata(handles.figure1, 'current_quality', '100');
 setappdata(handles.figure1, 'current_colourspace', 'Greyscale');
 
@@ -245,6 +247,15 @@ switch current_covermedia
     case 'cm_white'
         carrier_image_filename = [dir_input, 'white.jpg'];
         output_image_filename = [dir_output, 'white_gui.jpg'];
+    case 'cm_custom'
+        custom_filename = getappdata(handles.figure1, 'custom_filename');
+        custom_filepath = getappdata(handles.figure1, 'custom_filepath');
+        carrier_image_filename = [custom_filepath, custom_filename];
+        output_image_filename = [dir_output, custom_filename];
+        
+        if strcmp(custom_filename, '')
+            valid_covermedia = false;
+        end
     otherwise
         valid_covermedia = false;
 end
@@ -502,3 +513,14 @@ function pushbutton2_ButtonDownFcn(hObject, eventdata, handles) %#ok<*DEFNU>
 % hObject    handle to pushbutton2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in custom_image.
+function custom_image_Callback(hObject, eventdata, handles)
+% hObject    handle to custom_image (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+[filename, filepath] = uigetfile({'*.jpg', 'JPEG'; '*.png', 'PNG'; '*.bmp', 'BMP'; '*.*', 'All Files'}, 'Choose an image');
+setappdata(handles.figure1, 'custom_filename', filename);
+setappdata(handles.figure1, 'custom_filepath', filepath);
