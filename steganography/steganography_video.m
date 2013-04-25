@@ -2,8 +2,37 @@ clc;
 clear variables;
 [dir_input, dir_output, dir_results] = steganography_init();
 
+%@@ Output video, format and compression
+%@@ 1 = Archival          (.mj2)
+%@@ 2 = Motion JPEG AVI   (.avi)
+%@@ 3 = Motion JPEG 2000  (.mj2)
+%@@ 4 = MPEG-4            (.mp4)
+%@@ 5 = Uncompressed AVI  (.avi)
+profile_type = 3;
+
+%@@ Video quality
+%@@ NOTE: Only applicable to Motion JPEG AVI and MPEG-4
+output_quality = 75;
+
+%@@ Choose algorithm: LSB, DCT, ZK, WDCT, Fusion, Egypt
+%@@ (not case sensitive)
+algorithm = 'DCT';
+
+%@@ Frames to use from the video
+frame_start = 0;
+frame_max = 10;
+
+%@@ Which colour channel to use (1=r, 2=g, 3=b)
+channel = 3;
+
+%@@ Which colour space to use ('rgb', 'hsv', 'ycbcr');
+colourspace = 'rgb';
+
+%@@ Whether the video is greyscale
+use_greyscale = false;
+
 %@@ Name of folder to store test results in
-test_name = 'ZK_video';
+test_name = [algorithm, '_video'];
 
 [dir_results_full, ~] = create_directory_unique([dir_results, test_name]);
 output_csv_filename = [dir_results_full, test_name, '_results.csv'];
@@ -15,35 +44,6 @@ output_csv_filename = [dir_results_full, test_name, '_results.csv'];
 %@@ because it is generated based upon the chosen format.
 input_video_filename = [dir_input, 'bunny.mp4'];
 output_video_filename_base = [dir_results_full, 'bunny_dct'];
-
-%@@ Output video, format and compression
-%@@ 1 = Archival          (.mj2)
-%@@ 2 = Motion JPEG AVI   (.avi)
-%@@ 3 = Motion JPEG 2000  (.mj2)
-%@@ 4 = MPEG-4            (.mp4)
-%@@ 5 = Uncompressed AVI  (.avi)
-profile_type = 2;
-
-%@@ Video quality
-%@@ NOTE: Only applicable to Motion JPEG AVI and MPEG-4
-output_quality = 75;
-
-%@@ Choose algorithm: LSB, DCT, ZK, WDCT, Fusion, Egypt
-%@@ (not case sensitive)
-algorithm = 'Egypt';
-
-%@@ Frames to use from the video
-frame_start = 0;
-frame_max = 100;
-
-%@@ Which colour channel to use (1=r, 2=g, 3=b)
-channel = 3;
-
-%@@ Which colour space to use ('rgb', 'hsv', 'ycbcr');
-colourspace = 'rgb';
-
-%@@ Whether the video is greyscale
-use_greyscale = false;
 
 switch profile_type
     case 1
@@ -88,17 +88,17 @@ height = vin.Height;
 algorithm = lower(algorithm);
 switch algorithm
     case 'lsb'
-        [secret_msg_bin] = steg_lsb_default(width, height, use_greyscale);
+        [secret_msg_bin] = steg_lsb_default(width, height, use_greyscale, '');
     case 'dct'
-        [secret_msg_bin, frequency_coefficients, persistence] = steg_dct_default(width, height, use_greyscale);
+        [secret_msg_bin, frequency_coefficients, persistence] = steg_dct_default(width, height, use_greyscale, '');
     case 'zk'
-        [secret_msg_bin, frequency_coefficients, variance_threshold, minimum_distance_encode, minimum_distance_decode] = steg_zk_default(width, height, use_greyscale);
+        [secret_msg_bin, frequency_coefficients, variance_threshold, minimum_distance_encode, minimum_distance_decode] = steg_zk_default(width, height, use_greyscale, '');
     case 'wdct'
-        [secret_msg_bin, frequency_coefficients, persistence, mode] = steg_wdct_default(width, height, use_greyscale);
+        [secret_msg_bin, frequency_coefficients, persistence, mode] = steg_wdct_default(width, height, use_greyscale, '');
     case 'fusion'
-        [secret_msg_bin, alpha, mode] = steg_fusion_default(width, height, use_greyscale);
+        [secret_msg_bin, alpha, mode] = steg_fusion_default(width, height, use_greyscale, '');
     case 'egypt'
-        [secret_msg_bin, secret_msg_binimg, secret_msg_w, secret_msg_h, mode, block_size, pixel_size, is_binary] = steg_egypt_default(width, height, use_greyscale);
+        [secret_msg_bin, secret_msg_binimg, secret_msg_w, secret_msg_h, mode, block_size, pixel_size, is_binary] = steg_egypt_default(width, height, use_greyscale, '');
     otherwise
         error('No such algorithm "%s" exists.', algorithm);
 end
