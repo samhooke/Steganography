@@ -9,15 +9,12 @@ test_name = 'LSB_grey';
 %@@ To test from 100% to 0% quality, set to 101
 iteration_total = 101;
 
-dir_results = [dir_results, test_name, '\'];
+% Create directory for results if running iteration test
 if iteration_total > 1
-    if exist(dir_results, 'dir')
-        error('Directory "%s" already exists!', dir_results);
-    end
-    mkdir(dir_results);
+    [dir_results_full, ~] = create_directory_unique([dir_results, test_name]);
+    iteration_data = zeros(7, iteration_total);
+    output_csv_filename = [dir_results_full, test_name, '_results.csv'];
 end
-iteration_data = zeros(7, iteration_total);
-output_csv_filename = [dir_results, test_name, '_results.csv'];
 
 for iteration_current = 1:iteration_total
 
@@ -104,7 +101,7 @@ decode_time = toc;
 % Log data if running multiple tests
 if iteration_total > 1
     iteration_data(((iteration_current - 1) * 7) + 1:((iteration_current - 1) * 7) + 1 + 6) = [output_quality, msg_similarity_py * 100, msg_similarity * 100, im_psnr, encode_time, decode_time, length_bytes];
-    imwrite(uint8(im_stego), sprintf('%s%d.jpg', dir_results, output_quality));
+    imwrite(uint8(im_stego), sprintf('%s%d.jpg', dir_results_full, output_quality));
 end
     
 end
@@ -112,4 +109,5 @@ end
 % Save data log to file
 if iteration_total > 1
     test_data_save(output_csv_filename, iteration_data');
+    fprintf('Saved results at: %s\n', output_csv_filename);
 end
