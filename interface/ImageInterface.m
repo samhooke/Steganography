@@ -22,7 +22,7 @@ function varargout = ImageInterface(varargin)
 
 % Edit the above text to modify the response to help ImageInterface
 
-% Last Modified by GUIDE v2.5 25-Apr-2013 21:34:48
+% Last Modified by GUIDE v2.5 25-Apr-2013 23:17:20
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -521,6 +521,11 @@ function custom_image_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+% Choose file
 [filename, filepath] = uigetfile({'*.jpg', 'JPEG'; '*.png', 'PNG'; '*.bmp', 'BMP'; '*.*', 'All Files'}, 'Choose an image');
 setappdata(handles.figure1, 'custom_filename', filename);
 setappdata(handles.figure1, 'custom_filepath', filepath);
+
+% Set cover media
+set(handles.panel_covermedia, 'SelectedObject', handles.cm_custom);
+setappdata(handles.figure1, 'current_covermedia', 'cm_custom');
