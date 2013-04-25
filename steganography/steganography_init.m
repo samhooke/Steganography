@@ -1,9 +1,6 @@
 function [dir_input, dir_output, dir_results] = steganography_init()
 % steganography_init() Sets up Matlab workspace for steganography functions
 
-% Get rid of all open figures
-close all;
-
 % Ensure correct directory
 cd(home_directory());
 
