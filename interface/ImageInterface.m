@@ -182,6 +182,7 @@ current_algorithm = getappdata(handles.figure1, 'current_algorithm');
 current_covermedia = getappdata(handles.figure1, 'current_covermedia');
 current_quality = str2num(getappdata(handles.figure1, 'current_quality'));
 current_colourspace = getappdata(handles.figure1, 'current_colourspace');
+msg_desired = get(handles.msg_input, 'String');
 
 if strcmp(current_colourspace, 'Greyscale')
     use_greyscale = true;
@@ -204,6 +205,14 @@ fprintf('Algorithm: %s\n', current_algorithm);
 fprintf('Cover media: %s\n', current_covermedia);
 fprintf('Quality: %d\n', current_quality);
 fprintf('Colourspace: %s\n', current_colourspace);
+fprintf('Message: "%s"\n', msg_desired);
+
+% The default functions require an argument of '' in order to generate
+% their own secret message. This step is for some reason required to ensure
+% that they string is indeed equal to ''.
+if length(msg_desired) < 1
+    msg_desired = '';
+end
 
 valid_covermedia = true;
 switch current_covermedia
@@ -225,17 +234,17 @@ if valid_covermedia
     valid_algorithm = true;
     switch current_algorithm
         case 'al_lsb'
-            [secret_msg_bin] = steg_lsb_default(width, height, use_greyscale);
+            [secret_msg_bin] = steg_lsb_default(width, height, use_greyscale, msg_desired);
         case 'al_dct'
-            [secret_msg_bin, frequency_coefficients, persistence] = steg_dct_default(width, height, use_greyscale);
+            [secret_msg_bin, frequency_coefficients, persistence] = steg_dct_default(width, height, use_greyscale, msg_desired);
         case 'al_zk'
-            [secret_msg_bin, frequency_coefficients, variance_threshold, minimum_distance_encode, minimum_distance_decode] = steg_zk_default(width, height, use_greyscale);
+            [secret_msg_bin, frequency_coefficients, variance_threshold, minimum_distance_encode, minimum_distance_decode] = steg_zk_default(width, height, use_greyscale, msg_desired);
         case 'al_wdct'
-            [secret_msg_bin, frequency_coefficients, persistence, mode] = steg_wdct_default(width, height, use_greyscale);
+            [secret_msg_bin, frequency_coefficients, persistence, mode] = steg_wdct_default(width, height, use_greyscale, msg_desired);
         case 'al_fusion'
-            [secret_msg_bin, alpha, mode] = steg_fusion_default(width, height, use_greyscale);
+            [secret_msg_bin, alpha, mode] = steg_fusion_default(width, height, use_greyscale, msg_desired);
         case 'al_egypt'
-            [secret_msg_bin, secret_msg_binimg, secret_msg_w, secret_msg_h, mode, block_size, pixel_size, is_binary] = steg_egypt_default(width, height, use_greyscale);
+            [secret_msg_bin, secret_msg_binimg, secret_msg_w, secret_msg_h, mode, block_size, pixel_size, is_binary] = steg_egypt_default(width, height, use_greyscale, msg_desired);
         otherwise
             valid_algorithm = false;
     end
