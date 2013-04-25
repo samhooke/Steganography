@@ -331,6 +331,13 @@ if valid_covermedia
         
         [length_bytes, msg_similarity_py, msg_similarity, im_psnr] = steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_bin, encode_time, decode_time);
         
+        %TODO: Make the float result from this display correctly
+        %{
+        if strcmp(current_algorithm, 'al_zk')
+            length_bytes = bits_written/8;
+        end
+        %}
+        
         % Output
         %fprintf('Message: "%s"\n', extracted_msg_str);
         

@@ -8,7 +8,8 @@ pixel_size = 3;
 is_binary = true;
 
 if use_greyscale
-    mode = 'haar';
+    %mode = 'haar';
+    mode = 'idk';
 else
     mode = 'idk';
 end
