@@ -19,8 +19,6 @@ if len == 0
 else
     charsTotal = len;
 end
-charsMatch = 0;
-charsDiff = 0;
 
 % Pad strings to make them the same length
 spacing = ['%-', num2str(charsTotal),'s'];

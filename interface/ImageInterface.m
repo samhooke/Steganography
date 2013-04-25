@@ -43,6 +43,31 @@ else
 end
 % End initialization code - DO NOT EDIT
 
+function SetAllToDefaults(handles)
+[dir_input, dir_output, dir_results] = steganography_init();
+
+% Default values
+setappdata(handles.figure1, 'current_algorithm', 'al_lsb');
+setappdata(handles.figure1, 'current_covermedia', 'cm_lena');
+setappdata(handles.figure1, 'current_quality', '100');
+setappdata(handles.figure1, 'current_colourspace', 'Greyscale');
+
+% Statistics
+set(handles.msg_output, 'String', '');
+set(handles.status, 'String', '');
+
+% Images
+im_white = imload([dir_input, 'white.jpg'], false);
+axes(handles.im_input);
+imshow(uint8(im_white), [0 255]);
+axes(handles.im_output);
+imshow(uint8(im_white), [0 255]);
+
+set(handles.panel_algorithm, 'SelectedObject', handles.al_lsb);
+set(handles.panel_covermedia, 'SelectedObject', handles.cm_lena);
+set(handles.quality, 'Value', 1);
+set(handles.colourspace, 'Value', 1);
+
 
 % --- Executes just before ImageInterface is made visible.
 function ImageInterface_OpeningFcn(hObject, eventdata, handles, varargin)
@@ -61,12 +86,7 @@ guidata(hObject, handles);
 % UIWAIT makes ImageInterface wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
-% Default values
-setappdata(handles.figure1, 'current_algorithm', 'al_lsb');
-setappdata(handles.figure1, 'current_covermedia', 'cm_lena');
-setappdata(handles.figure1, 'current_quality', '100');
-setappdata(handles.figure1, 'current_colourspace', 'Greyscale');
-
+SetAllToDefaults(handles);
 
 % --- Outputs from this function are returned to the command line.
 function varargout = ImageInterface_OutputFcn(hObject, eventdata, handles) 
@@ -473,8 +493,7 @@ function pushbutton2_Callback(hObject, eventdata, handles) %#ok<*INUSL>
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-set(handles.msg_output, 'String', '');
-set(handles.status, 'String', '');
+SetAllToDefaults(handles);
 
 % --- If Enable == 'on', executes on mouse press in 5 pixel border.
 % --- Otherwise, executes on mouse press in 5 pixel border or over pushbutton2.
