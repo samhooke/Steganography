@@ -5,19 +5,7 @@ clear variables;
 %@@ Name of folder to store test results in
 test_name = 'ZK_video';
 
-% Pick a unique output folder name in the format of "test_name + #"
-dir_results_full = [dir_results, test_name, '\'];
-test_num = 0;
-while exist(dir_results_full, 'dir')
-    dir_results_full = [dir_results, test_name, '_', sprintf('%d', test_num), '\'];
-    test_num = test_num + 1;
-    
-    if test_num > 100
-        error('You should delete some test results from "%s".', dir_results);
-    end
-end
-
-mkdir(dir_results_full);
+[dir_results_full, ~] = create_directory_unique([dir_results, test_name]);
 output_csv_filename = [dir_results_full, test_name, '_results.csv'];
 
 % Encode
