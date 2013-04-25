@@ -172,7 +172,7 @@ function pushbutton1_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-set(handles.status, 'String', 'Asdf');
+set(handles.status, 'String', 'Running...');
 
 [dir_input, dir_output, dir_results] = steganography_init();
 
@@ -200,8 +200,6 @@ else
     end
 end
 
-
-
 fprintf('Algorithm: %s\n', current_algorithm);
 fprintf('Cover media: %s\n', current_covermedia);
 fprintf('Quality: %d\n', current_quality);
@@ -220,13 +218,10 @@ switch current_covermedia
 end
 
 if valid_covermedia
-    
-    
+
     im = imload(carrier_image_filename, use_greyscale);
     [width height ~] = size(im);
-    
-    
-    
+
     valid_algorithm = true;
     switch current_algorithm
         case 'al_lsb'
@@ -247,8 +242,6 @@ if valid_covermedia
 
     if valid_algorithm
         
-        set(handles.status, 'String', 'Performing steganography');
-        
         % Select colour channel if necessary
         if use_greyscale
             imc = im;
@@ -257,6 +250,7 @@ if valid_covermedia
         end
         
         % Perform encoding
+        tic;
         switch current_algorithm
             case 'al_lsb'
                 [imc_stego] = steg_lsb_encode(imc, secret_msg_bin);
@@ -277,6 +271,7 @@ if valid_covermedia
             otherwise
                 error('No such algorithm "%s" exists for encoding.', algorithm);
         end
+        encode_time = toc;
         
         % Switch back colour channel if necessary
         if use_greyscale
@@ -300,6 +295,7 @@ if valid_covermedia
         end
         
         % Decode
+        tic;
         switch current_algorithm
             case 'al_lsb'
                 [extracted_msg_bin] = steg_lsb_decode(imc_stego);
@@ -319,9 +315,12 @@ if valid_covermedia
             otherwise
                 error('No such algorithm "%s" exists for decoding.', algorithm);
         end
+        decode_time = toc;
         
         % Convert message to string
         extracted_msg_str = bin2str(extracted_msg_bin);
+        
+        [length_bytes, msg_similarity_py, msg_similarity, im_psnr] = steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_bin, encode_time, decode_time);
         
         % Output
         %fprintf('Message: "%s"\n', extracted_msg_str);
@@ -332,7 +331,7 @@ if valid_covermedia
         %extracted_msg_str_cleaned = strrep(extracted_msg_str_cleaned, '\f', '');
         
         set(handles.msg_output, 'String', extracted_msg_str);
-        set(handles.status, 'String', 'Done');
+        set(handles.status, 'String', sprintf('Match:%2.2f%% PSNR:%.2fdB Size:%d bytes', msg_similarity * 100, im_psnr, length_bytes));
         
         % Show images
         if use_greyscale
