@@ -346,7 +346,14 @@ if valid_covermedia
         %extracted_msg_str_cleaned = strrep(extracted_msg_str, '\n', '');
         %extracted_msg_str_cleaned = strrep(extracted_msg_str_cleaned, '\f', '');
         
-        set(handles.msg_output, 'String', extracted_msg_str);
+        % Remove new line and line feed
+        extracted_msg_str_cleaned = strrep(extracted_msg_str, '\n', '');
+        extracted_msg_str_cleaned = strrep(extracted_msg_str_cleaned, '\f', '');
+        
+        % Remove null byte
+        extracted_msg_str_cleaned = regexprep(extracted_msg_str_cleaned, '\x00', '');
+        
+        set(handles.msg_output, 'String', extracted_msg_str_cleaned);
         set(handles.status, 'String', sprintf('Match:%2.2f%% PSNR:%.2fdB Size:%d bytes', msg_similarity * 100, im_psnr, length_bytes));
         
         % Show images
