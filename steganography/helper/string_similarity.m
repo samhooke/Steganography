@@ -19,21 +19,18 @@ if len == 0
 else
     charsTotal = len;
 end
-charsMatch = 0;
-charsDiff = 0;
 
 % Pad strings to make them the same length
 spacing = ['%-', num2str(charsTotal),'s'];
 s1p = sprintf(spacing, s1);
 s2p = sprintf(spacing, s2);
 
-for i = 1:charsTotal
-    if (s1p(i) == s2p(i))
-        charsMatch = charsMatch + 1;
-    else
-        charsDiff = charsDiff + 1;
-    end
-end
+s1p = str2num(s1p')'; %#ok<ST2NM>
+s2p = str2num(s2p')'; %#ok<ST2NM>
+
+d = xor(s1p, s2p);
+charsDiff = sum(d);
+charsMatch = length(d) - charsDiff;
 
 matchPercentage = charsMatch / charsTotal;
 
