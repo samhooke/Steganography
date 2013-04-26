@@ -22,7 +22,7 @@ function varargout = ImageInterface(varargin)
 
 % Edit the above text to modify the response to help ImageInterface
 
-% Last Modified by GUIDE v2.5 25-Apr-2013 12:18:19
+% Last Modified by GUIDE v2.5 25-Apr-2013 23:17:20
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -43,6 +43,33 @@ else
 end
 % End initialization code - DO NOT EDIT
 
+function SetAllToDefaults(handles)
+[dir_input, dir_output, dir_results] = steganography_init();
+
+% Default values
+setappdata(handles.figure1, 'current_algorithm', 'al_lsb');
+setappdata(handles.figure1, 'current_covermedia', 'cm_lena');
+setappdata(handles.figure1, 'custom_filename', '');
+setappdata(handles.figure1, 'custom_filepath', '');
+setappdata(handles.figure1, 'current_quality', '100');
+setappdata(handles.figure1, 'current_colourspace', 'Greyscale');
+
+% Statistics
+set(handles.msg_output, 'String', '');
+set(handles.status, 'String', '');
+
+% Images
+im_white = imload([dir_input, 'white.jpg'], false);
+axes(handles.im_input);
+imshow(uint8(im_white), [0 255]);
+axes(handles.im_output);
+imshow(uint8(im_white), [0 255]);
+
+set(handles.panel_algorithm, 'SelectedObject', handles.al_lsb);
+set(handles.panel_covermedia, 'SelectedObject', handles.cm_lena);
+set(handles.quality, 'Value', 1);
+set(handles.colourspace, 'Value', 1);
+
 
 % --- Executes just before ImageInterface is made visible.
 function ImageInterface_OpeningFcn(hObject, eventdata, handles, varargin)
@@ -61,12 +88,7 @@ guidata(hObject, handles);
 % UIWAIT makes ImageInterface wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
-% Default values
-setappdata(handles.figure1, 'current_algorithm', 'al_lsb');
-setappdata(handles.figure1, 'current_covermedia', 'cm_lena');
-setappdata(handles.figure1, 'current_quality', '100');
-setappdata(handles.figure1, 'current_colourspace', 'Greyscale');
-
+SetAllToDefaults(handles);
 
 % --- Outputs from this function are returned to the command line.
 function varargout = ImageInterface_OutputFcn(hObject, eventdata, handles) 
@@ -222,6 +244,18 @@ switch current_covermedia
     case 'cm_peppers'
         carrier_image_filename = [dir_input, 'peppers.jpg'];
         output_image_filename = [dir_output, 'peppers_gui.jpg'];
+    case 'cm_white'
+        carrier_image_filename = [dir_input, 'white.jpg'];
+        output_image_filename = [dir_output, 'white_gui.jpg'];
+    case 'cm_custom'
+        custom_filename = getappdata(handles.figure1, 'custom_filename');
+        custom_filepath = getappdata(handles.figure1, 'custom_filepath');
+        carrier_image_filename = [custom_filepath, custom_filename];
+        output_image_filename = [dir_output, custom_filename];
+        
+        if strcmp(custom_filename, '')
+            valid_covermedia = false;
+        end
     otherwise
         valid_covermedia = false;
 end
@@ -282,6 +316,7 @@ if valid_covermedia
         end
         encode_time = toc;
         
+        
         % Switch back colour channel if necessary
         if use_greyscale
             im_stego = imc_stego;
@@ -292,10 +327,10 @@ if valid_covermedia
         
         % Write
         imwrite(uint8(im_stego), output_image_filename, 'Quality', current_quality);
-        
+
         % Read
         im_stego = imload(output_image_filename, use_greyscale);
-        
+
         % Select colour channel of necessary
         if use_greyscale
             imc_stego = im_stego;
@@ -328,34 +363,7 @@ if valid_covermedia
         
         % Convert message to string
         extracted_msg_str = bin2str(extracted_msg_bin);
-        
-        [length_bytes, msg_similarity_py, msg_similarity, im_psnr] = steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_bin, encode_time, decode_time);
-        
-        %TODO: Make the float result from this display correctly
-        %{
-        if strcmp(current_algorithm, 'al_zk')
-            length_bytes = bits_written/8;
-        end
-        %}
-        
-        % Output
-        %fprintf('Message: "%s"\n', extracted_msg_str);
-        
-        %extracted_msg_str_cleaned = regexprep(extracted_msg_str, '\n', '');
-        %extracted_msg_str_cleaned = regexprep(extracted_msg_str_cleaned, '\f', '');
-        %extracted_msg_str_cleaned = strrep(extracted_msg_str, '\n', '');
-        %extracted_msg_str_cleaned = strrep(extracted_msg_str_cleaned, '\f', '');
-        
-        % Remove new line and line feed
-        extracted_msg_str_cleaned = strrep(extracted_msg_str, '\n', '');
-        extracted_msg_str_cleaned = strrep(extracted_msg_str_cleaned, '\f', '');
-        
-        % Remove null byte
-        extracted_msg_str_cleaned = regexprep(extracted_msg_str_cleaned, '\x00', '');
-        
-        set(handles.msg_output, 'String', extracted_msg_str_cleaned);
-        set(handles.status, 'String', sprintf('Match:%2.2f%% PSNR:%.2fdB Size:%d bytes', msg_similarity * 100, im_psnr, length_bytes));
-        
+
         % Show images
         if use_greyscale
             axes(handles.im_input);
@@ -368,6 +376,25 @@ if valid_covermedia
             axes(handles.im_output);
             imshow(uint8(im_stego), [0 255]);
         end
+        
+        % Calculate statistics
+        [length_bytes, msg_similarity_py, msg_similarity, im_psnr] = steganography_statistics(imc, imc_stego, secret_msg_bin, extracted_msg_bin, encode_time, decode_time);
+        
+        %TODO: Make the float result from this display correctly
+        %{
+        if strcmp(current_algorithm, 'al_zk')
+            length_bytes = bits_written/8;
+        end
+        %}
+        
+        % Output
+        fprintf('Message: "%s"\n', extracted_msg_str);
+        
+        % Remove null byte
+        extracted_msg_str_cleaned = regexprep(extracted_msg_str, '[\x00-\x1F]', '?');
+        
+        set(handles.msg_output, 'String', extracted_msg_str_cleaned);
+        set(handles.status, 'String', sprintf('Match:%2.2f%% PSNR:%.2fdB Size:%d bytes En-time: %fs De-time: %fs', msg_similarity * 100, im_psnr, length_bytes, encode_time, decode_time));
     end
 end
 % --- Executes when selected object is changed in panel_algorithm.
@@ -425,8 +452,6 @@ function quality_ButtonDownFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-
-
 function msg_output_Callback(hObject, eventdata, handles)
 % hObject    handle to msg_output (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -434,7 +459,6 @@ function msg_output_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of msg_output as text
 %        str2double(get(hObject,'String')) returns contents of msg_output as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function msg_output_CreateFcn(hObject, eventdata, handles)
@@ -457,7 +481,7 @@ function colourspace_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns colourspace contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from colourspace
-contents = cellstr(get(hObject,'String'))
+contents = cellstr(get(hObject,'String'));
 colourspace = contents{get(hObject,'Value')};
 setappdata(handles.figure1, 'current_colourspace', colourspace);
 
@@ -473,3 +497,35 @@ function colourspace_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on button press in pushbutton2.
+function pushbutton2_Callback(hObject, eventdata, handles) %#ok<*INUSL>
+% hObject    handle to pushbutton2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+SetAllToDefaults(handles);
+
+% --- If Enable == 'on', executes on mouse press in 5 pixel border.
+% --- Otherwise, executes on mouse press in 5 pixel border or over pushbutton2.
+function pushbutton2_ButtonDownFcn(hObject, eventdata, handles) %#ok<*DEFNU>
+% hObject    handle to pushbutton2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in custom_image.
+function custom_image_Callback(hObject, eventdata, handles)
+% hObject    handle to custom_image (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Choose file
+[filename, filepath] = uigetfile({'*.jpg', 'JPEG'; '*.png', 'PNG'; '*.bmp', 'BMP'; '*.*', 'All Files'}, 'Choose an image');
+setappdata(handles.figure1, 'custom_filename', filename);
+setappdata(handles.figure1, 'custom_filepath', filepath);
+
+% Set cover media
+set(handles.panel_covermedia, 'SelectedObject', handles.cm_custom);
+setappdata(handles.figure1, 'current_covermedia', 'cm_custom');
