@@ -363,7 +363,7 @@ if valid_covermedia
         
         % Convert message to string
         extracted_msg_str = bin2str(extracted_msg_bin);
-        
+
         % Show images
         if use_greyscale
             axes(handles.im_input);
