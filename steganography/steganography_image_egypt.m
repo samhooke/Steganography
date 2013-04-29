@@ -3,8 +3,8 @@ clear variables;
 [dir_input, dir_output, dir_results] = steganography_init();
 
 %@@ Input image and output location
-carrier_image_filename = 'beans.jpg';
-output_image_filename = 'beans_egypt.jpg';
+carrier_image_filename = 'peppers.jpg';
+output_image_filename = 'peppers_egypt.jpg';
 
 %@@ Message string to encode into carrier image
 %@@ Leave blank to automatically generate a message
@@ -17,7 +17,7 @@ channel = 3;
 
 %@@ How many test iterations to do
 %@@ To test from 100% to 0% quality, set to 101
-iteration_total = 101;
+iteration_total = 1;
 
 % Name of folder to store test results in
 if use_greyscale
@@ -43,7 +43,7 @@ for iteration_current = 1:iteration_total
 %@@   max capacity (in bits) = (secret_msg_w / pixel_size) * (secret_msg_h / pixel_size)
 %@@   divide by 8 to get it in bytes
 %@@ Must be multiples of both block_size and pixel_size
-secret_msg_w = 36 * 10;
+secret_msg_w = 36;
 secret_msg_h = 36;
 
 %@@ Output image quality
@@ -55,7 +55,7 @@ else
 end
 
 %@@ Wavelet transformation
-%@@ [Default: 'idk' if use_greyscale = false, otherwise 'haar']
+%@@ [Default: 'idk' or sometimes 'haar']
 mode = 'idk';
 
 %@@ Block size: Size in pixels of the blocks that the secret is split up

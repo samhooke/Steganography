@@ -3,8 +3,8 @@ clear variables;
 [dir_input, dir_output, dir_results] = steganography_init();
 
 %@@ Input image and output location
-carrier_image_filename = 'ca2.jpg';
-output_image_filename = 'ca2_lsb.jpg';
+carrier_image_filename = 'white.jpg';
+output_image_filename = 'white_lsb.jpg';
 
 %@@ Message string to encode into carrier image
 %@@ Leave blank to automatically generate a message
