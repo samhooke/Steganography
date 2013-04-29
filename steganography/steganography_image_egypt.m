@@ -17,7 +17,7 @@ channel = 3;
 
 %@@ How many test iterations to do
 %@@ To test from 100% to 0% quality, set to 101
-iteration_total = 1;
+iteration_total = 101;
 
 % Name of folder to store test results in
 if use_greyscale
@@ -43,12 +43,12 @@ for iteration_current = 1:iteration_total
 %@@   max capacity (in bits) = (secret_msg_w / pixel_size) * (secret_msg_h / pixel_size)
 %@@   divide by 8 to get it in bytes
 %@@ Must be multiples of both block_size and pixel_size
-secret_msg_w = 384;
-secret_msg_h = 384;
+secret_msg_w = 36;
+secret_msg_h = 36;
 
 %@@ Output image quality
 if iteration_total == 1
-    output_quality = 75;
+    output_quality = 100;
 else
     % If performing a test, try all qualities from 100 to 0
     output_quality = 100 - (iteration_current - 1);
