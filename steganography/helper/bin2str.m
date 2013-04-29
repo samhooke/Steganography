@@ -1,7 +1,7 @@
 function s = bin2str(a)
 % bin2str() Converts binary into a string
 % INPUTS
-%    a - Input binary
+%    a - Input binary. Length must be multiple of 8
 % OUTPUTS
 %    s - Output string
 

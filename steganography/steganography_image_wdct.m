@@ -2,12 +2,29 @@ clc;
 clear variables;
 [dir_input, dir_output, dir_results] = steganography_init();
 
-%@@ Name of folder to store test results in
-test_name = 'WDCT_grey';
+%@@ Input image and output location
+carrier_image_filename = 'ca2.jpg';
+output_image_filename = 'ca2_wdct.jpg';
+
+%@@ Message string to encode into carrier image
+%@@ Leave blank to automatically generate a message
+secret_msg_str = '';
+
+%@@ Whether to force the image to be greyscale.
+%@@ If not greyscale, select which colour channel to use (1=r, 2=g, 3=b)
+use_greyscale = true;
+channel = 3;
 
 %@@ How many test iterations to do
 %@@ To test from 100% to 0% quality, set to 101
 iteration_total = 101;
+
+% Name of folder to store test results in
+if use_greyscale
+    test_name = ['WDCT_', carrier_image_filename, '_grey'];
+else
+    test_name = ['WDCT_', carrier_image_filename];
+end
 
 % Create directory for results if running iteration test
 if iteration_total > 1
@@ -20,19 +37,6 @@ for iteration_current = 1:iteration_total
 
 % Encode
 % ======
-
-%@@ Input image and output location
-carrier_image_filename = [dir_input, 'lena.jpg'];
-output_image_filename = [dir_output, 'lena_wdct.jpg'];
-
-%@@ Message string to encode into carrier image
-%@@ Leave blank to automatically generate a message
-secret_msg_str = '';
-
-%@@ Whether to force the image to be greyscale.
-%@@ If not greyscale, select which colour channel to use (1=r, 2=g, 3=b)
-use_greyscale = true;
-channel = 3;
 
 %@@ Output image quality
 if iteration_total == 1
@@ -60,7 +64,7 @@ end
 im = imload(carrier_image_filename, use_greyscale);
 [w h ~] = size(im);
 msg_length_max = w / 16 * h / 16; % One bit per 8x8, in one quarter
-msg_length_max = msg_length_max / 8; % Convert to bytes
+msg_length_max = ceil(msg_length_max / 8); % Convert to bytes
 if isempty(secret_msg_str)
     secret_msg_str = generate_test_message(msg_length_max);
 end;

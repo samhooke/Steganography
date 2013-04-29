@@ -32,7 +32,7 @@ msg_similarity = string_similarity(bin2binstr(secret_msg_bin), bin2binstr(extrac
 
 % Convert binary messages to string
 secret_msg_str = bin2str(secret_msg_bin);
-extracted_msg_str = bin2str(extracted_msg_bin);
+extracted_msg_str = bin2str(extracted_msg_bin(1:floor(length(extracted_msg_bin)/8)*8)); % Ensure msg is multiple of 8
 
 % Calculate length
 length_bytes = length(secret_msg_str);

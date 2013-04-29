@@ -2,12 +2,29 @@ clc;
 clear variables;
 [dir_input, dir_output, dir_results] = steganography_init();
 
-%@@ Name of folder to store test results in
-test_name = 'Egypt_grey';
+%@@ Input image and output location
+carrier_image_filename = 'beans.jpg';
+output_image_filename = 'beans_egypt.jpg';
+
+%@@ Message string to encode into carrier image
+%@@ Leave blank to automatically generate a message
+secret_msg_str = '';
+
+%@@ Whether to force the image to be greyscale.
+%@@ If not greyscale, select which colour channel to use (1=r, 2=g, 3=b)
+use_greyscale = true;
+channel = 3;
 
 %@@ How many test iterations to do
 %@@ To test from 100% to 0% quality, set to 101
 iteration_total = 101;
+
+% Name of folder to store test results in
+if use_greyscale
+    test_name = ['Egypt_', carrier_image_filename, '_grey'];
+else
+    test_name = ['Egypt_', carrier_image_filename];
+end
 
 % Create directory for results if running iteration test
 if iteration_total > 1
@@ -21,20 +38,12 @@ for iteration_current = 1:iteration_total
 % Encode
 % ======
 
-%@@ Input image and output location
-carrier_image_filename = [dir_input, 'lena.jpg'];
-output_image_filename = [dir_output, 'lena_egypt.jpg'];
-
-%@@ Message string to encode into carrier image
-%@@ Leave blank to automatically generate a message
-secret_msg_str = '';
-
 %@@ Width and height in pixels of the secret image, which directly affects
 %@@ the maximum capacity:
 %@@   max capacity (in bits) = (secret_msg_w / pixel_size) * (secret_msg_h / pixel_size)
 %@@   divide by 8 to get it in bytes
 %@@ Must be multiples of both block_size and pixel_size
-secret_msg_w = 36;
+secret_msg_w = 36 * 10;
 secret_msg_h = 36;
 
 %@@ Output image quality
@@ -44,11 +53,6 @@ else
     % If performing a test, try all qualities from 100 to 0
     output_quality = 100 - (iteration_current - 1);
 end
-
-%@@ Whether to force the image to be greyscale.
-%@@ If not greyscale, select which colour channel to use (1=r, 2=g, 3=b)
-use_greyscale = true;
-channel = 3;
 
 %@@ Wavelet transformation
 %@@ [Default: 'idk' if use_greyscale = false, otherwise 'haar']
