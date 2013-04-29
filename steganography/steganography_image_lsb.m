@@ -2,12 +2,29 @@ clc;
 clear variables;
 [dir_input, dir_output, dir_results] = steganography_init();
 
-%@@ Name of folder to store test results in
-test_name = 'LSB_grey';
+%@@ Input image and output location
+carrier_image_filename = 'lena.jpg';
+output_image_filename = 'lena_lsb.jpg';
+
+%@@ Message string to encode into carrier image
+%@@ Leave blank to automatically generate a message
+secret_msg_str = '';
+
+%@@ Whether to force the image to be greyscale.
+%@@ If not greyscale, select which colour channel to use (1=r, 2=g, 3=b)
+use_greyscale = true;
+channel = 3;
 
 %@@ How many test iterations to do
 %@@ To test from 100% to 0% quality, set to 101
 iteration_total = 101;
+
+% Name of folder to store test results in
+if use_greyscale
+    test_name = ['LSB_', carrier_image_filename, '_grey'];
+else
+    test_name = ['LSB_', carrier_image_filename];
+end
 
 % Create directory for results if running iteration test
 if iteration_total > 1
@@ -21,19 +38,6 @@ for iteration_current = 1:iteration_total
 % Encode
 % ======
 
-%@@ Input image and output location
-carrier_image_filename = [dir_input, 'lena.jpg'];
-output_image_filename = [dir_output, 'lena_lsb.jpg'];
-
-%@@ Message string to encode into carrier image
-%@@ Leave blank to automatically generate a message
-secret_msg_str = '';
-
-%@@ Whether to force the image to be greyscale.
-%@@ If not greyscale, select which colour channel to use (1=r, 2=g, 3=b)
-use_greyscale = true;
-channel = 3;
-
 %@@ Output image quality
 if iteration_total == 1
     output_quality = 100;
@@ -43,7 +47,7 @@ else
 end
 
 % Load image, generate message if necessary
-im = uint8(imload(carrier_image_filename, use_greyscale));
+im = uint8(imload([dir_input, carrier_image_filename], use_greyscale));
 [w h ~] = size(im);
 msg_length_max = w * h; % One bit per pixel
 msg_length_max = msg_length_max / 8; % Convert to bytes
@@ -78,12 +82,12 @@ imshow(uint8(im_stego), [0 255]);
 title('Stego');
 
 % Write
-imwrite(uint8(im_stego), output_image_filename, 'Quality', output_quality);
+imwrite(uint8(im_stego), [dir_output, output_image_filename], 'Quality', output_quality);
 
 % Decode
 % ======
 
-im_stego = uint8(imload(output_image_filename, use_greyscale));
+im_stego = uint8(imload([dir_output, output_image_filename], use_greyscale));
 
 if use_greyscale
     imc_stego = im_stego;

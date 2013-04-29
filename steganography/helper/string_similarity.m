@@ -1,4 +1,4 @@
-function [matchPercentage, charsMatch, charsDiff, charsTotal] = string_similarity(s1, s2, len)
+function [matchPercentage, charsMatch, charsDiff, charsTotalMax] = string_similarity(s1, s2, len)
 % string_similarity() Compares how similar two strings are
 %   The strings can be of different lengths, but that will increase the
 %   reported difference between them.
@@ -15,24 +15,33 @@ function [matchPercentage, charsMatch, charsDiff, charsTotal] = string_similarit
 %    charsTotal      - How many characters were compared
 
 if len == 0
-    charsTotal = max(length(s1), length(s2));
+    charsTotalMax = max(length(s1), length(s2));
+    charsTotalMin = min(length(s1), length(s2));
 else
-    charsTotal = len;
+    charsTotalMax = len;
+    charsTotalMin = len;
 end
 
-% Pad strings to make them the same length
-spacing = ['%-', num2str(charsTotal),'s'];
-s1p = sprintf(spacing, s1);
-s2p = sprintf(spacing, s2);
+% Ensure both strings are the same length
+s1p = s1(1:charsTotalMin);
+s2p = s2(1:charsTotalMin);
 
 s1p = str2num(s1p')'; %#ok<ST2NM>
 s2p = str2num(s2p')'; %#ok<ST2NM>
 
 d = xor(s1p, s2p);
 charsDiff = sum(d);
+
+% If comparing the whole string, add to the difference however many
+% characters the string differs in length. This ensures that strings of
+% different lengths incur a matching penalty.
+if len == 0
+    charsDiff = charsDiff + (charsTotalMax - charsTotalMin);
+end
+
 charsMatch = length(d) - charsDiff;
 
-matchPercentage = charsMatch / charsTotal;
+matchPercentage = charsMatch / charsTotalMax;
 
 % Remap such that a match of 50% equates to 0%, because 50% means that
 % every other bit matches, which is essentially a 0% match.
