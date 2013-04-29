@@ -3,8 +3,8 @@ clear variables;
 [dir_input, dir_output, dir_results] = steganography_init();
 
 %@@ Input image and output location
-carrier_image_filename = 'white.jpg';
-output_image_filename = 'white_wdct.jpg';
+carrier_image_filename = 'lena.jpg';
+output_image_filename = 'lena_wdct.jpg';
 
 %@@ Message string to encode into carrier image
 %@@ Leave blank to automatically generate a message
@@ -61,7 +61,7 @@ else
 end
 
 % Load image, generate message if necessary
-im = imload(carrier_image_filename, use_greyscale);
+im = imload([dir_input, carrier_image_filename], use_greyscale);
 [w h ~] = size(im);
 msg_length_max = w / 16 * h / 16; % One bit per 8x8, in one quarter
 msg_length_max = ceil(msg_length_max / 8); % Convert to bytes
@@ -102,13 +102,13 @@ imshow((imc-imc_stego).^2, [0 255]);
 title('difference');
 
 % Write
-imwrite(uint8(im_stego), output_image_filename, 'Quality', output_quality);
+imwrite(uint8(im_stego), [dir_output, output_image_filename], 'Quality', output_quality);
 
 % Decode
 % ======
 
 % Read and take chosen channel
-im_stego = imload(output_image_filename, use_greyscale);
+im_stego = imload([dir_output, output_image_filename], use_greyscale);
 
 if use_greyscale
     imc_stego = im_stego;

@@ -3,8 +3,8 @@ clear variables;
 [dir_input, dir_output, dir_results] = steganography_init();
 
 %@@ Input image and output location
-carrier_image_filename = 'white.jpg';
-output_image_filename = 'white_zk.jpg';
+carrier_image_filename = 'lena.jpg';
+output_image_filename = 'lena_zk.jpg';
 
 %@@ Message string to encode into carrier image
 %@@ Leave blank to automatically generate a message
@@ -50,7 +50,7 @@ end
 frequency_coefficients = [4 6; 5 2; 6 5];
 
 % Load image, generate message if necessary
-im = imload(carrier_image_filename, use_greyscale);
+im = imload([dir_input, carrier_image_filename], use_greyscale);
 [w h ~] = size(im);
 % NOTE: By definition the ZK implementation skips some blocks, so the below
 % calculation for msg_length_max is a best case estimation.
@@ -84,12 +84,12 @@ else
 end
 
 % Write to file
-imwrite(uint8(im_stego), output_image_filename, 'Quality', output_quality);
+imwrite(uint8(im_stego), [dir_output, output_image_filename], 'Quality', output_quality);
 
 % Decode
 % ======
 
-im_stego = imload(output_image_filename, use_greyscale);
+im_stego = imload([dir_output, output_image_filename], use_greyscale);
 
 if use_greyscale
     imc_stego = im_stego;

@@ -3,8 +3,8 @@ clear variables;
 [dir_input, dir_output, dir_results] = steganography_init();
 
 %@@ Input image and output location
-carrier_image_filename = 'white.jpg';
-output_image_filename = 'white_fusion.jpg';
+carrier_image_filename = 'lena.jpg';
+output_image_filename = 'lena_fusion.jpg';
 
 %@@ Message string to encode into carrier image
 %@@ Leave blank to automatically generate a message
@@ -53,7 +53,7 @@ alpha = 0.05;
 mode = 'db1';
 
 % Load image, generate message if necessary
-im = imload(carrier_image_filename, use_greyscale);
+im = imload([dir_input, carrier_image_filename], use_greyscale);
 [w h ~] = size(im);
 msg_length_max = w / 2 * h / 2; % One bit per pixel, in one quarter
 msg_length_max = msg_length_max / 8; % Convert to bytes
@@ -93,13 +93,13 @@ subplot(2,2,4);
 imshow(uint8(im_stego));
 title('Stego image');
 
-imwrite(uint8(im_stego), output_image_filename, 'quality', output_quality);
+imwrite(uint8(im_stego), [dir_output, output_image_filename], 'quality', output_quality);
 
 % Decode
 % ======
 
-im_stego = imload(output_image_filename, use_greyscale);
-im_original = imload(carrier_image_filename, use_greyscale);
+im_stego = imload([dir_output, output_image_filename], use_greyscale);
+im_original = imload([dir_input, carrier_image_filename], use_greyscale);
 
 if use_greyscale
     imc_stego = im_stego;

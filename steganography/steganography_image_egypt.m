@@ -3,8 +3,8 @@ clear variables;
 [dir_input, dir_output, dir_results] = steganography_init();
 
 %@@ Input image and output location
-carrier_image_filename = 'peppers.jpg';
-output_image_filename = 'peppers_egypt.jpg';
+carrier_image_filename = 'lena.jpg';
+output_image_filename = 'lena_egypt.jpg';
 
 %@@ Message string to encode into carrier image
 %@@ Leave blank to automatically generate a message
@@ -43,12 +43,12 @@ for iteration_current = 1:iteration_total
 %@@   max capacity (in bits) = (secret_msg_w / pixel_size) * (secret_msg_h / pixel_size)
 %@@   divide by 8 to get it in bytes
 %@@ Must be multiples of both block_size and pixel_size
-secret_msg_w = 36;
-secret_msg_h = 36;
+secret_msg_w = 384;
+secret_msg_h = 384;
 
 %@@ Output image quality
 if iteration_total == 1
-    output_quality = 100;
+    output_quality = 75;
 else
     % If performing a test, try all qualities from 100 to 0
     output_quality = 100 - (iteration_current - 1);
@@ -65,24 +65,24 @@ mode = 'idk';
 %@@ 4 is generally the best value, because when put back through IDWT it
 %@@ effectively becomes 8, making the block_size match JPEG encoding.
 %@@ [Default: 4]
-block_size = 4;
+block_size = 32;
 
-%@@ Pixel size: When converting the secret message into binary, and storing
-%@@ it in the form of an image as black and white pixels, this controls how
-%@@ big those pixels are, in pixels. Larger values lead to more robustness,
-%@@ but less capacity.
+%@@ Square size: When converting the secret message into binary, and
+%@@ storing it in the form of an image as black and white pixels, this
+%@@ controls how big those pixels are, in pixels. Larger values lead to
+%@@ more robustness, but less capacity.
 %@@ [Default: 3]
-pixel_size = 3;
+square_size = 1;
 
 % Set to true, because we are encoding secret binary data, not an image
 is_binary = true;
 
 % Load images
-im = imload(carrier_image_filename, use_greyscale);
+im = imload([dir_input, carrier_image_filename], use_greyscale);
 
 [im_carrier_w im_carrier_h ~] = size(im);
 if isempty(secret_msg_str)
-    secret_msg_str = generate_test_message(((secret_msg_w / pixel_size) * (secret_msg_h / pixel_size)) / 8);
+    secret_msg_str = generate_test_message(((secret_msg_w / square_size) * (secret_msg_h / square_size)) / 8);
 end;
 secret_msg_bin = str2bin(secret_msg_str);
 
@@ -94,7 +94,7 @@ end
 
 tic;
 % Convert binary data to image
-im_secret = bin2binimg(secret_msg_bin, secret_msg_w / pixel_size, secret_msg_h / pixel_size, pixel_size, 255);
+im_secret = bin2binimg(secret_msg_bin, secret_msg_w / square_size, secret_msg_h / square_size, square_size, 255);
 
 [imc_stego, key1, key2, im_wavelet_stego, im_wavelet_secret] = steg_egypt_encode(imc, im_secret, mode, block_size, is_binary);
 encode_time = toc;
@@ -107,13 +107,13 @@ else
 end
 
 % Write stego image to file
-imwrite(uint8(im_stego), output_image_filename, 'Quality', output_quality);
+imwrite(uint8(im_stego), [dir_output, output_image_filename], 'Quality', output_quality);
 
 % Decode
 % ======
 
 % Load G
-im_stego = imload(output_image_filename, use_greyscale);
+im_stego = imload([dir_output, output_image_filename], use_greyscale);
 
 % Perform Egypt decoding
 if use_greyscale
@@ -126,7 +126,7 @@ tic;
 [im_extracted, im_errors] = steg_egypt_decode(imc_stego, secret_msg_w, secret_msg_h, key1, key2, mode, block_size, is_binary);
 
 % Extract the binary data from the extracted image
-extracted_msg_bin = binimg2bin(im_extracted, pixel_size, 127);
+extracted_msg_bin = binimg2bin(im_extracted, square_size, 127);
 decode_time = toc;
 
 % Take the raw extracted image, and make the values either 0 or 255
