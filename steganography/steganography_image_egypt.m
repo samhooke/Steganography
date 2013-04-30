@@ -3,8 +3,8 @@ clear variables;
 [dir_input, dir_output, dir_results] = steganography_init();
 
 %@@ Input image and output location
-carrier_image_filename = 'lena.jpg';
-output_image_filename = 'lena_egypt.jpg';
+carrier_image_filename = 'avatar.jpg';
+output_image_filename = 'avatar_egypt.jpg';
 
 %@@ Message string to encode into carrier image
 %@@ Leave blank to automatically generate a message
@@ -43,8 +43,8 @@ for iteration_current = 1:iteration_total
 %@@   max capacity (in bits) = (secret_msg_w / pixel_size) * (secret_msg_h / pixel_size)
 %@@   divide by 8 to get it in bytes
 %@@ Must be multiples of both block_size and pixel_size
-secret_msg_w = 36;
-secret_msg_h = 36;
+secret_msg_w = 128;
+secret_msg_h = 128;
 
 %@@ Output image quality
 if iteration_total == 1
@@ -65,7 +65,7 @@ mode = 'idk';
 %@@ 4 is generally the best value, because when put back through IDWT it
 %@@ effectively becomes 8, making the block_size match JPEG encoding.
 %@@ [Default: 4]
-block_size = 32;
+block_size = 64;
 
 %@@ Square size: When converting the secret message into binary, and
 %@@ storing it in the form of an image as black and white pixels, this
