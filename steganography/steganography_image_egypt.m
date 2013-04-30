@@ -17,7 +17,10 @@ channel = 3;
 
 %@@ How many test iterations to do
 %@@ To test from 100% to 0% quality, set to 101
-iteration_total = 101;
+iteration_total = 1;
+
+%@@ Whether to use hamming coding
+use_hamming = false;
 
 % Name of folder to store test results in
 if use_greyscale
@@ -43,12 +46,12 @@ for iteration_current = 1:iteration_total
 %@@   max capacity (in bits) = (secret_msg_w / pixel_size) * (secret_msg_h / pixel_size)
 %@@   divide by 8 to get it in bytes
 %@@ Must be multiples of both block_size and pixel_size
-secret_msg_w = 128;
-secret_msg_h = 128;
+secret_msg_w = 36;
+secret_msg_h = 36;
 
 %@@ Output image quality
 if iteration_total == 1
-    output_quality = 100;
+    output_quality = 10;
 else
     % If performing a test, try all qualities from 100 to 0
     output_quality = 100 - (iteration_current - 1);
@@ -65,14 +68,14 @@ mode = 'idk';
 %@@ 4 is generally the best value, because when put back through IDWT it
 %@@ effectively becomes 8, making the block_size match JPEG encoding.
 %@@ [Default: 4]
-block_size = 64;
+block_size = 4;
 
 %@@ Square size: When converting the secret message into binary, and
 %@@ storing it in the form of an image as black and white pixels, this
 %@@ controls how big those pixels are, in pixels. Larger values lead to
 %@@ more robustness, but less capacity.
 %@@ [Default: 3]
-square_size = 1;
+square_size = 3;
 
 % Set to true, because we are encoding secret binary data, not an image
 is_binary = true;
@@ -86,6 +89,14 @@ if isempty(secret_msg_str)
 end;
 secret_msg_bin = str2bin(secret_msg_str);
 
+if use_hamming
+    % Hamming encode
+    secret_msg_bin = secret_msg_bin(1:length(secret_msg_bin)/2);
+    secret_msg_bin_raw = hamming_encode_chunk(secret_msg_bin);
+else
+    secret_msg_bin_raw = secret_msg_bin;
+end
+    
 if use_greyscale
     imc = im;
 else
@@ -94,7 +105,7 @@ end
 
 tic;
 % Convert binary data to image
-im_secret = bin2binimg(secret_msg_bin, secret_msg_w / square_size, secret_msg_h / square_size, square_size, 255);
+im_secret = bin2binimg(secret_msg_bin_raw, secret_msg_w / square_size, secret_msg_h / square_size, square_size, 255);
 
 [imc_stego, key1, key2, im_wavelet_stego, im_wavelet_secret] = steg_egypt_encode(imc, im_secret, mode, block_size, is_binary);
 encode_time = toc;
@@ -126,7 +137,14 @@ tic;
 [im_extracted, im_errors] = steg_egypt_decode(imc_stego, secret_msg_w, secret_msg_h, key1, key2, mode, block_size, is_binary);
 
 % Extract the binary data from the extracted image
-extracted_msg_bin = binimg2bin(im_extracted, square_size, 127);
+extracted_msg_bin_raw = binimg2bin(im_extracted, square_size, 127);
+
+if use_hamming
+    % Hamming decode
+    extracted_msg_bin = hamming_decode_chunk(extracted_msg_bin_raw);
+else
+    extracted_msg_bin = extracted_msg_bin_raw;
+end
 decode_time = toc;
 
 % Take the raw extracted image, and make the values either 0 or 255

@@ -17,6 +17,43 @@ msg
 msg_sent
 msg_final
 
+%% Example calling chunk functions
+
+msg = [1 1 0 1 0 1 0 0 1 1 0 1];
+
+msg_sent = hamming_encode_chunk(msg);
+
+msg_final = hamming_decode_chunk(msg_sent);
+
+msg
+msg_final
+
+%% Example calling chunk base
+
+msg = [1 1 0 1 0 1 0 0 1 1 0 1];
+
+%msg_sent = hamming_encode_chunk(msg);
+len = length(msg)/3;
+msg_sent = zeros(6, len);
+msg2 = reshape(msg, 3, len);
+for i = 1:len
+    msg_sent(:,i) = hamming_encode(msg2(:,i)')';
+end
+msg_sent = reshape(msg_sent, 1, 6 * len);
+
+%msg_final = hamming_decode_chunk(msg_sent);
+len = length(msg_sent)/6;
+msg_sent2 = reshape(msg_sent, 6, len);
+msg_final = zeros(3, len);
+for i = 1:len
+    msg_final(:,i) = hamming_decode(msg_sent2(:,i)')';
+end
+msg_final = reshape(msg_final, 1, 3 * len);
+
+msg
+%msg_sent
+msg_final
+
 %% Example calling base functions
 
 msg = [0 1 1 0 1 0 0 1];
