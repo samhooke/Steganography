@@ -19,7 +19,7 @@ channel = 3;
 %@@ To test from 100% to 0% quality, set to 101
 iteration_total = 1;
 
-%@@ Whether to use hamming coding
+%@@ Whether to use hamming coding (halves capacity, increases robustness)
 use_hamming = false;
 
 % Name of folder to store test results in
@@ -46,12 +46,12 @@ for iteration_current = 1:iteration_total
 %@@   max capacity (in bits) = (secret_msg_w / pixel_size) * (secret_msg_h / pixel_size)
 %@@   divide by 8 to get it in bytes
 %@@ Must be multiples of both block_size and pixel_size
-secret_msg_w = 36;
-secret_msg_h = 36;
+secret_msg_w = 96;
+secret_msg_h = 96;
 
 %@@ Output image quality
 if iteration_total == 1
-    output_quality = 10;
+    output_quality = 75;
 else
     % If performing a test, try all qualities from 100 to 0
     output_quality = 100 - (iteration_current - 1);
@@ -68,14 +68,14 @@ mode = 'idk';
 %@@ 4 is generally the best value, because when put back through IDWT it
 %@@ effectively becomes 8, making the block_size match JPEG encoding.
 %@@ [Default: 4]
-block_size = 4;
+block_size = 32;
 
 %@@ Square size: When converting the secret message into binary, and
 %@@ storing it in the form of an image as black and white pixels, this
 %@@ controls how big those pixels are, in pixels. Larger values lead to
 %@@ more robustness, but less capacity.
 %@@ [Default: 3]
-square_size = 3;
+square_size = 1;
 
 % Set to true, because we are encoding secret binary data, not an image
 is_binary = true;
