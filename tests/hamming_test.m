@@ -1,3 +1,24 @@
+%% Example calling nice functions
+
+msg = [0 1 1 0 1 0 0 1];
+
+msg_sent = hamming_encode(msg);
+
+% Chance of flipping a random bit
+if rand > 0.5
+    msg_received = msg_sent;
+    rnd_pos = floor(1 + rand * length(msg_received));
+    msg_received(1,rnd_pos) = mod(msg_received(1,rnd_pos) - 1,2);
+end
+
+msg_final = hamming_decode(msg_received);
+
+msg
+msg_sent
+msg_final
+
+%% Example calling base functions
+
 msg = [0 1 1 0 1 0 0 1];
 
 % Calculates the length of the string
