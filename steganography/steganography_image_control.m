@@ -43,7 +43,7 @@ else
 end
 
 % Load image
-im = imload([dir_input, carrier_image_filename], use_greyscale);
+im = uint8(imload([dir_input, carrier_image_filename], use_greyscale));
 
 if use_greyscale
     imc = im;
@@ -69,7 +69,7 @@ imwrite(uint8(im_stego), [dir_output, output_image_filename], 'Quality', output_
 % ======
 
 % Read image and take chosen channel
-im_stego = imload([dir_output, output_image_filename], use_greyscale);
+im_stego = uint8(imload([dir_output, output_image_filename], use_greyscale));
 
 if use_greyscale
     imc_stego = im_stego;
