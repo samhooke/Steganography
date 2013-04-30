@@ -3,8 +3,8 @@ clear variables;
 [dir_input, dir_output, dir_results] = steganography_init();
 
 %@@ Input image and output location
-carrier_image_filename = 'lena.jpg';
-output_image_filename = 'lena_dct.jpg';
+carrier_image_filename = 'ca2.jpg';
+output_image_filename = 'ca2_dct.jpg';
 
 %@@ Message string to encode into carrier image
 %@@ Leave blank to automatically generate a message
@@ -20,7 +20,7 @@ channel = 3;
 iteration_total = 1;
 
 %@@ Whether to use hamming coding (halves capacity, increases robustness)
-use_hamming = true;
+use_hamming = false;
 
 % Name of folder to store test results in
 if use_greyscale

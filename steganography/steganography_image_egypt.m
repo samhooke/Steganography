@@ -3,8 +3,8 @@ clear variables;
 [dir_input, dir_output, dir_results] = steganography_init();
 
 %@@ Input image and output location
-carrier_image_filename = 'avatar.jpg';
-output_image_filename = 'avatar_egypt.jpg';
+carrier_image_filename = 'peppers.jpg';
+output_image_filename = 'peppers_egypt.jpg';
 
 %@@ Message string to encode into carrier image
 %@@ Leave blank to automatically generate a message
@@ -17,10 +17,10 @@ channel = 3;
 
 %@@ How many test iterations to do
 %@@ To test from 100% to 0% quality, set to 101
-iteration_total = 1;
+iteration_total = 101;
 
 %@@ Whether to use hamming coding (halves capacity, increases robustness)
-use_hamming = false;
+use_hamming = true;
 
 % Name of folder to store test results in
 if use_greyscale
@@ -51,7 +51,7 @@ secret_msg_h = 96;
 
 %@@ Output image quality
 if iteration_total == 1
-    output_quality = 75;
+    output_quality = 100;
 else
     % If performing a test, try all qualities from 100 to 0
     output_quality = 100 - (iteration_current - 1);
@@ -61,21 +61,18 @@ end
 %@@ [Default: 'idk' or sometimes 'haar']
 mode = 'idk';
 
-%@@ Block size: Size in pixels of the blocks that the secret is split up
-%@@ into. Smaller values lead to more accuracy and robustness, but slower
-%@@ calculation and larger keys. If set as low as 1, then the image is
-%@@ effectively the key, and the key is the encoded secret data.
-%@@ 4 is generally the best value, because when put back through IDWT it
-%@@ effectively becomes 8, making the block_size match JPEG encoding.
-%@@ [Default: 4]
-block_size = 32;
+%@@ Block size: Size in pixels of the blocks that the secret binary image
+%@@ is split up into. Generally, smaller values lead to more accuracy and
+%@@ robustness, but slower calculation and larger keys.
+%@@ [Default: usually between 1 and 32]
+block_size = 16;
 
-%@@ Square size: When converting the secret message into binary, and
-%@@ storing it in the form of an image as black and white pixels, this
-%@@ controls how big those pixels are, in pixels. Larger values lead to
-%@@ more robustness, but less capacity.
-%@@ [Default: 3]
-square_size = 1;
+%@@ Square size: When converting the secret message into a binary image,
+%@@ this controls the size in pixels of the squares used to represent each
+%@@ bit. Generally, larger values lead to more robustness, but less
+%@@ capacity.
+%@@ [Default: 1 to 16]
+square_size = 3;
 
 % Set to true, because we are encoding secret binary data, not an image
 is_binary = true;
@@ -91,8 +88,10 @@ secret_msg_bin = str2bin(secret_msg_str);
 
 if use_hamming
     % Hamming encode
+    secret_msg_bin_raw = zeros(1, length(secret_msg_bin));
     secret_msg_bin = secret_msg_bin(1:length(secret_msg_bin)/2);
-    secret_msg_bin_raw = hamming_encode_chunk(secret_msg_bin);
+    secret_msg_bin_hamming = hamming_encode_chunk(secret_msg_bin);
+    secret_msg_bin_raw(1:length(secret_msg_bin_hamming)) = secret_msg_bin_hamming;
 else
     secret_msg_bin_raw = secret_msg_bin;
 end
