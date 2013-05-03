@@ -4,11 +4,11 @@ This code was written for a project titled "Applying Steganography to Digital Me
 
 # Setup
 
-Clone this repository. Then, in Matlab, do: File -> Set Path... -> Add With Subfolders... -> Browse for the root directory of this repository -> OK
+In Matlab, do: File -> Set Path... -> Add With Subfolders... -> Browse for root directory of this repo -> OK
 
 # Steganography
 
-This project contains implementations of 6 distinct steganography algorithms in Matlab, a simple interface for applying steganography to images, and a couple of processing methods for increasing robustness of the algorithms. For each algorithm, there is an example application both images and videos. The following files are all located in the *steganography/* folder:
+This project contains implementations of 6 distinct steganography algorithms in Matlab, a simple interface for applying steganography to images, and a couple of processing methods for increasing robustness of the algorithms. For each algorithm, there is an example application both images and videos. The following files are all located in the */steganography* folder:
 
 | Algorithm | Image Example                  | Video Example           |
 |:----------|:-------------------------------|:------------------------|
@@ -27,22 +27,22 @@ Hamming codes can also be applied. They can be enabled in the DCT or Egypt algor
 
 # Interface
 
-Within the *interface/* folder exists *ImageInterface.m*. This is a simple Matlab interface that allows performing steganography of text into images using all of the above algorithms.
+Within the */interface* folder exists *ImageInterface.m*. This is a simple Matlab interface that allows performing steganography of text into images using all of the above algorithms.
 
 It is intended only for demonstration purposes. Much more customisation of the algorithms is possible through performing steganography directly through Matlab code.
 
 # Input, Output and Results
 
-The *input/* folder contains potential carrier images, such as the infamous lena.jpg.
+The */input* folder contains potential carrier images, such as the infamous lena.jpg.
 
-The *output/* folder is where the steganography algorithms output their stego-images when they are run for **1 iteration**.
+The */output* folder is where the steganography algorithms output their stego-images when they are run for **1 iteration**.
 
-The *results/* folder is where the steganography algorithms output their stego-images and a CSV of results when they are run for **multiple iterations**.
+The */results* folder is where the steganography algorithms output their stego-images and a CSV of results when they are run for **multiple iterations**.
 
 The number of **iterations** is set by modifying the **iteration_total** parameter at the top of each steganography example file.
 
-* Set **iteration_total** to 1 to run one test, which outputs to *output/*
-* Set **iteration_total** to 101 to run 101 tests, in which JPEG quality from 100% to 0% is tested, and results are outputted to *results/*
+* Set **iteration_total** to 1 to run one test, which outputs to */output*
+* Set **iteration_total** to 101 to run 101 tests, in which JPEG quality from 100% to 0% is tested, and results are outputted to */results*
 
 # Other Parameters
 
