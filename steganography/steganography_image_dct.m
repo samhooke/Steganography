@@ -3,8 +3,8 @@ clear variables;
 [dir_input, dir_output, dir_results] = steganography_init();
 
 %@@ Input image and output location
-carrier_image_filename = 'lena.jpg';
-output_image_filename = 'lena_dct.jpg';
+carrier_image_filename = 'peppers.jpg';
+output_image_filename = 'stegoimage_dct.jpg';
 
 %@@ Message string to encode into carrier image
 %@@ Leave blank to automatically generate a message
@@ -18,6 +18,9 @@ channel = 3;
 %@@ How many test iterations to do
 %@@ To test from 100% to 0% quality, set to 101
 iteration_total = 101;
+
+%@@ Whether to use hamming coding (halves capacity, increases robustness)
+use_hamming = false;
 
 % Name of folder to store test results in
 if use_greyscale
@@ -70,6 +73,14 @@ if isempty(secret_msg_str)
 end;
 secret_msg_bin = str2bin(secret_msg_str);
 
+if use_hamming
+    % Hamming encode
+    secret_msg_bin = secret_msg_bin(1:length(secret_msg_bin)/2);
+    secret_msg_bin_raw = hamming_encode_chunk(secret_msg_bin);
+else
+    secret_msg_bin_raw = secret_msg_bin;
+end
+
 if use_greyscale
     imc = im;
 else
@@ -78,7 +89,7 @@ else
 end
 
 tic;
-[imc_stego bits_written bits_unused] = steg_dct_encode(secret_msg_bin, imc, frequency_coefficients, persistence);
+[imc_stego bits_written bits_unused] = steg_dct_encode(secret_msg_bin_raw, imc, frequency_coefficients, persistence);
 encode_time = toc;
 
 if use_greyscale
@@ -109,7 +120,13 @@ end
 
 % Decode
 tic;
-[extracted_msg_bin] = steg_dct_decode(imc_stego, frequency_coefficients);
+[extracted_msg_bin_raw] = steg_dct_decode(imc_stego, frequency_coefficients);
+if use_hamming
+    % Hamming decode
+    extracted_msg_bin = hamming_decode_chunk(extracted_msg_bin_raw);
+else
+    extracted_msg_bin = extracted_msg_bin_raw;
+end
 decode_time = toc;
 
 % Verify and compare difference
