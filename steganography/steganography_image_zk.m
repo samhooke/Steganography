@@ -3,8 +3,8 @@ clear variables;
 [dir_input, dir_output, dir_results] = steganography_init();
 
 %@@ Input image and output location
-carrier_image_filename = 'lena.jpg';
-output_image_filename = 'lena_zk.jpg';
+carrier_image_filename = 'peppers.jpg';
+output_image_filename = 'stegoimage_zk.jpg';
 
 %@@ Message string to encode into carrier image
 %@@ Leave blank to automatically generate a message

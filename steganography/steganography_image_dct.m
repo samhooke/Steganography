@@ -3,8 +3,8 @@ clear variables;
 [dir_input, dir_output, dir_results] = steganography_init();
 
 %@@ Input image and output location
-carrier_image_filename = 'ca2.jpg';
-output_image_filename = 'ca2_dct.jpg';
+carrier_image_filename = 'peppers.jpg';
+output_image_filename = 'stegoimage_dct.jpg';
 
 %@@ Message string to encode into carrier image
 %@@ Leave blank to automatically generate a message
@@ -17,7 +17,7 @@ channel = 3;
 
 %@@ How many test iterations to do
 %@@ To test from 100% to 0% quality, set to 101
-iteration_total = 1;
+iteration_total = 101;
 
 %@@ Whether to use hamming coding (halves capacity, increases robustness)
 use_hamming = false;
@@ -43,7 +43,7 @@ for iteration_current = 1:iteration_total
 
 %@@ Output image quality
 if iteration_total == 1
-    output_quality = 50;
+    output_quality = 100;
 else
     % If performing a test, try all qualities from 100 to 0
     output_quality = 100 - (iteration_current - 1);

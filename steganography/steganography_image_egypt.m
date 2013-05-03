@@ -4,7 +4,7 @@ clear variables;
 
 %@@ Input image and output location
 carrier_image_filename = 'peppers.jpg';
-output_image_filename = 'peppers_egypt.jpg';
+output_image_filename = 'stegoimage_egypt.jpg';
 
 %@@ Message string to encode into carrier image
 %@@ Leave blank to automatically generate a message
@@ -20,7 +20,7 @@ channel = 3;
 iteration_total = 101;
 
 %@@ Whether to use hamming coding (halves capacity, increases robustness)
-use_hamming = true;
+use_hamming = false;
 
 % Name of folder to store test results in
 if use_greyscale
@@ -65,7 +65,7 @@ mode = 'idk';
 %@@ is split up into. Generally, smaller values lead to more accuracy and
 %@@ robustness, but slower calculation and larger keys.
 %@@ [Default: usually between 1 and 32]
-block_size = 16;
+block_size = 4;
 
 %@@ Square size: When converting the secret message into a binary image,
 %@@ this controls the size in pixels of the squares used to represent each

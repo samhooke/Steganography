@@ -3,8 +3,8 @@ clear variables;
 [dir_input, dir_output, dir_results] = steganography_init();
 
 %@@ Input image and output location
-carrier_image_filename = 'white.jpg';
-output_image_filename = 'white_control.jpg';
+carrier_image_filename = 'peppers.jpg';
+output_image_filename = 'stegoimage_control.jpg';
 
 %@@ Whether to force the image to be greyscale.
 %@@ If not greyscale, select which colour channel to use (1=r, 2=g, 3=b)
