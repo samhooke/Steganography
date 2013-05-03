@@ -1,3 +1,7 @@
+# About
+
+This code was written for a project titled "Applying Steganography to Digital Media".
+
 # Setup
 
 Clone this repository. Then, in Matlab, do: File -> Set Path... -> Add With Subfolders... -> Browse for the root directory of this repository -> OK
@@ -43,3 +47,7 @@ The number of **iterations** is set by modifying the **iteration_total** paramet
 # Other Parameters
 
 Each algorithm can be switched between greyscale and colour, through changing **use_greyscale**. If using colour, the specific colour channel can be set with **channel**.
+
+# Code
+
+This project is about 98% written in Matlab, with 2% Python. If Python is not installed the Matlab code will still run succesfully, but the Spellchecker will not function, and **message_similarity_py** will return NaN.
